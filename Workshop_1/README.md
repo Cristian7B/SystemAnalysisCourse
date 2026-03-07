@@ -1,8 +1,9 @@
-# Food Waste Redistribution Platform
-*Connecting cafeterias & restaurants with community for surplus food redistribution*
+# Geolocation Web Platform with Tiered Redistribution
+Initial description: *"Connecting cafeterias & restaurants with community for surplus food redistribution"*
+
 ## Overview
 
-The **Food Waste Redistribution Platform** is a geolocation-centered web application designed to reduce food waste, inicially in Bogotá, Colombia. The platform connects food donors such as university cafeterias and restaurants with recipients, prioritizing verified charitable organizations before allowing access to general users.
+The **Geolocation Web Platform with Tiered Redistribution** is a geolocation-centered web application designed to reduce food waste, inicially in Bogotá, Colombia. The platform connects food donors such as university cafeterias and restaurants with recipients, prioritizing verified charitable organizations before allowing access to general users.
 
 The system focuses on improving food redistribution efficiency through geographic visualization and a priority-based access system.
 
