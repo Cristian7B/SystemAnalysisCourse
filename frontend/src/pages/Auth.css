@@ -1,0 +1,88 @@
+.auth-page {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(22, 163, 74, 0.07) 0%, transparent 60%);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 440px;
+    padding: 40px;
+    text-align: center;
+}
+
+.auth-logo {
+    font-size: 3rem;
+    margin-bottom: 16px;
+}
+
+.auth-title {
+    font-size: 1.75rem;
+    margin-bottom: 8px;
+}
+
+.auth-sub {
+    color: var(--text-secondary);
+    margin-bottom: 28px;
+}
+
+.auth-form {
+    text-align: left;
+}
+
+.auth-switch {
+    margin-top: 20px;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* Role cards */
+.role-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 4px;
+}
+
+.role-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 14px 8px;
+    background: var(--bg-elevated);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition);
+    font-family: inherit;
+    text-align: center;
+}
+
+.role-card:hover {
+    border-color: var(--border-hover);
+}
+
+.role-card.selected {
+    border-color: var(--brand-green);
+    background: rgba(22, 163, 74, 0.1);
+}
+
+.role-emoji {
+    font-size: 1.5rem;
+}
+
+.role-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.role-desc {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    line-height: 1.3;
+}
