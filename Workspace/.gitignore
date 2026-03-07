@@ -1,0 +1,23 @@
+# Ignore Mac system files
+.DS_Store
+# Ignore Windows system files
+Thumbs.db
+# Ignore log files
+logs/
+*.log
+# Ignore environment variable files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# Ignore build output
+dist/
+build/
+# Ignore dependency directories
+node_modules/
+.venv/
+# Ignore IDE and editor files
+.idea/
+.vscode/
+*.iml
