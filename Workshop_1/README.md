@@ -1,118 +1,65 @@
-# Geolocation Web Platform with Tiered Redistribution
-Initial description: *"Connecting cafeterias & restaurants with community for surplus food redistribution"*
+# Food Waste Reduction Mobile Application
+*Connecting cafeterias & restaurants with community for surplus food redistribution*
 
 ## Overview
 
-The **Geolocation Web Platform with Tiered Redistribution** is a geolocation-centered web application designed to reduce food waste, inicially in Bogotá, Colombia. The platform connects food donors such as university cafeterias and restaurants with recipients, prioritizing verified charitable organizations before allowing access to general users.
+A geolocation-centered mobile application designed to reduce food waste in Bogotá, Colombia. The platform connects food donors (university cafeterias and restaurants) with recipients, prioritizing verified charitable organizations before allowing access to general users.
 
-The system focuses on improving food redistribution efficiency through geographic visualization and a priority-based access system.
+Recipients interact with an interactive map where food donations appear as location pins, allowing them to discover, filter, and claim available food nearby.
 
-Users interact with an interactive map where food donations appear as location pins. Recipients can discover, filter, and claim available food near them.
+## Purpose
 
+Reduce food waste while maximizing social impact by redistributing surplus food, prioritizing verified charities over general users.
 
-# System Purpose
+**Key tracked metrics:**
+- Kilograms of food redistributed
+- Percentage of food delivered to charities
+- Number of active users and donations
 
-The main purpose of the platform is to **reduce food waste while increasing social impact** by prioritizing food redistribution to verified charities before opening access to general users.
+## Objectives
 
-The system also allows tracking impact metrics such as:
+**General:** Develop a geolocation-based platform that facilitates surplus food redistribution while prioritizing charitable organizations.
 
-- kilograms of food redistributed
-- percentage of food delivered to charities
-- number of active users and donations
+**Specific:**
+- Implement a backend capable of handling donation registration and priority logic
+- Develop a REST API connecting frontend and backend services
+- Create an interactive map interface to display nearby food donations
+- Implement geospatial queries for efficient location-based discovery
+- Track and measure the social impact of redistributed food
+- Deploy the system using cloud services
 
+## Stakeholders
 
-# Objectives
+| Role | Examples |
+|------|----------|
+| Donors | University cafeterias, restaurants, food service staff |
+| Priority Recipients | Verified charities, community kitchens, student organizations |
+| General Recipients | University students, local community members |
+| Administrators | Project developers, university partners |
+| External | Universities, local authorities, social organizations |
 
-## General Objective
+## Functional Requirements
 
-Develop a geolocation-based web platform that facilitates the redistribution of surplus food while prioritizing charitable organizations.
+1. Donors can create food posts with type, quantity, expiration time, location, and photos
+2. Donations are displayed on an interactive map via geolocation
+3. Recipients can search for nearby donations
+4. Priority access system gives charities early access before general users
+5. Users can claim available donations and receive pickup confirmations
+6. Push notifications sent when food becomes available
+7. Administrators can verify charitable organizations
+8. Impact dashboard displays redistribution statistics
 
-## Specific Objectives
+## Operating Environment
 
-- Implement a backend capable of handling donation registration and priority logic.
-- Develop a REST API to connect frontend and backend services.
-- Create an interactive map interface to display nearby food donations.
-- Implement geospatial queries for efficient location-based discovery.
-- Track and measure the social impact of redistributed food.
-- Deploy the system using cloud services.
+- **Geography:** Bogotá, Colombia — university areas and nearby restaurants
+- **Connectivity:** Requires internet; PWA caching for intermittent connections
+- **Regulation:** Compliant with Colombian data protection Law 1581 of 2012
 
-# Stakeholders
+**Known risks:** GPS accuracy, low user adoption, API rate limits, privacy concerns
 
-The system involves several stakeholders:
+## Academic Context
 
-### Donors
-- University cafeterias
-- Restaurants
-- Food service staff
+Developed for the **Systems Analysis course** at **Universidad Distrital Francisco José de Caldas**, applying concepts of system analysis, software architecture, web development, and geospatial systems.
 
-### Priority Recipients
-- Verified charitable organizations
-- Community kitchens
-- Student organizations
-
-### General Recipients
-- University students
-- Local community members
-
-### Trusted Collectors
-Users who frequently collect donations responsibly and receive trust badges.
-
-### Platform Administrators
-Project developers and university partners responsible for maintaining the system.
-
-### External Stakeholders
-- Universities
-- Local authorities
-- Social organizations interested in food redistribution.
-
-
-# Necessities and Functional Requirements
-
-The system must:
-
-1. Allow donors to create food donation posts.
-2. Allow donors to include information such as:
-   - food type
-   - quantity
-   - expiration time
-   - location
-   - photos.
-3. Display donations on an interactive map using geolocation.
-4. Allow recipients to search for nearby donations.
-5. Implement a **priority access system** where charities have early access.
-6. Allow users to claim available food donations.
-7. Generate pickup confirmations (for example QR codes).
-8. Send notifications when food becomes available.
-9. Allow administrators to verify charity organizations.
-10. Provide an impact dashboard showing redistributed food statistics.
-
-
-# Operating Environment
-
-### Geographic Context
-The system is designed to operate primarily in **Bogotá**, focusing on university areas and nearby restaurants.
-
-### Connectivity
-The platform requires internet connectivity but may use **PWA caching** to improve user experience during intermittent connections.
-
-### Regulatory Context
-The system must respect Colombian data protection laws, including **Law 1581 of 2012**, especially regarding user geolocation data.
-
-### Risks
-
-- GPS accuracy issues
-- Low user adoption
-- API usage limits
-- Privacy concerns
-
-# Academic Context
-
-This project is developed as part of the **Systems Analysis course** at **Universidad Distrital Francisco José de Caldas**, Bogotá, Colombia.
-
-The project focuses on applying concepts of:
-
-- system analysis
-- software architecture
-- web development
-- geospatial systems
-- project collaboration
+## Related Files
+- `Workshop_1.pdf`: Full report detailing the activity that was carried out.
