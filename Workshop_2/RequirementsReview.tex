@@ -9,7 +9,7 @@
 \section{Requirements Analysis}
 
 \subsection{Synthesis of Workshop 1 Findings}
-The Workshop 1 analysis provided a comprehensive understanding of the Food Waste Reduction Platform, clearly defining its boundaries, stakeholders, operational constraints, and critical sensitivity factors. Key findings revealed significant opportunities for optimization alongside several performance bottlenecks and sources of system variability that must be addressed in the design phase. The following list summarizes the most relevant insights extracted directly from the Workshop 1 deliverable:
+The Workshop 1 analysis provided a structured examination of the Food Waste Reduction Platform, defining its system boundaries, operational constraints, stakeholders, and key environmental conditions. The analysis also revealed several performance bottlenecks, coordination risks, and sensitivity factors that may affect system reliability and scalability. The following findings synthesize the most relevant insights extracted from the Workshop 1 deliverable and serve as the basis for deriving measurable design requirements for the platform.
 \begin{itemize}
     \item \textbf{Strict 3 km operational radius} (Section I-C and I-B.2): The system is geographically constrained to a 3 km radius around the Engineering Faculty headquarters, directly impacting geolocation accuracy and matching logic.
    
@@ -32,6 +32,8 @@ The Workshop 1 analysis provided a comprehensive understanding of the Food Waste
     \item \textbf{Risk of supplier disengagement if offers remain unclaimed} (Section III-C.2): Repeated unclaimed surpluses may cause cafeterias and restaurants to stop participating.
    
     \item \textbf{Potential inequitable distribution due to proximity bias} (Section III-C.2): The matching algorithm may systematically disadvantage users at the edge of the 3 km radius.
+
+    \item \textbf{Real-time notification responsiveness requirement} (Section III-C.1 and III-D): The system relies on immediate user awareness of newly published surpluses to ensure rapid claims within the limited freshness window. Delays in notification delivery may reduce the probability of successful redistribution.
 \end{itemize}
 
 \subsection{Measurable Design Requirements}
@@ -52,6 +54,17 @@ REQ-08 & Impact metrics must be calculated automatically & System shall aggregat
 REQ-09 & High concurrency during peak hours  & Architecture shall support concurrent users without degradation & Handle $≥$ 200 concurrent users with matching time $≤$ 30 s & Scalability\\
 REQ-10 & Risk of supplier disengagement if offers remain unclaimed & System shall generate early-warning alerts for administrators & Alert triggered when unclaimed rate $>$ 20\% for any supplier during 3 consecutive days & Reliability\\
 REQ-11 & Proximity bias causing inequitable distribution & Matching algorithm shall include distance-balancing mechanism & Peripheral users (2.5–3 km) receive $≥$ 15\% of total matches & Reliability\\
+REQ-12 & Real-time notification responsiveness requirement & System shall deliver surplus notifications to candidate users in real time & Push notification delivery $<$ 5 seconds for $\geq$ 95\% of users & Performance \\
+
+REQ-13 & Matching algorithm processing time constraint & Matching algorithm shall generate a candidate assignment within bounded execution time & Matching decision generated in $<$ 2 seconds for $\geq$ 95\% of surplus publications & Performance \\
+
+REQ-14 & Need for reliable pickup confirmation process & System shall require dual confirmation of surplus collection from supplier and recipient & 100\% of completed redistributions require supplier confirmation and recipient confirmation & Reliability \\
+
+REQ-15 & Dependence on cloud infrastructure availability & Platform infrastructure shall maintain high service availability & System uptime $\geq$ 99\% measured monthly & Reliability \\
+
+REQ-16 & Mobile application responsiveness requirement & Mobile interface shall load surplus listings quickly for users & Listing screen load time $<$ 2 seconds for $\geq$ 95\% of sessions & Usability \\
+
+REQ-17 & Repeated no-show user behavior risk & System shall track user reliability and restrict repeated no-show behavior & Users with $>$3 no-shows within 7 days receive temporary restriction of 48 hours & Reliability \\
 \bottomrule
 \end{longtable}
 
