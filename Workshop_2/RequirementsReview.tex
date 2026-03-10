@@ -6,11 +6,35 @@
 
 \begin{document}
 
+
 \section{Requirements Analysis}
 
 \subsection{Synthesis of Workshop 1 Findings}
+The Workshop 1 analysis provided a comprehensive understanding of the Food Waste Reduction Platform, clearly defining its boundaries, stakeholders, operational constraints, and critical sensitivity factors. Key findings revealed significant opportunities for optimization alongside several performance bottlenecks and sources of system variability that must be addressed in the design phase. The following list summarizes the most relevant insights extracted directly from the Workshop 1 deliverable:
 
-The Workshop 1 analysis identified critical bottlenecks: ...
+\begin{itemize}
+    \item \textbf{Strict 3 km operational radius} (Section I-C and I-B.2): The system is geographically constrained to a 3 km radius around the Engineering Faculty headquarters, directly impacting geolocation accuracy and matching logic.
+    
+    \item \textbf{Same-day publication and collection windows} (Section I - D): Surplus can only be published 2--4 hours before closing with a maximum 1--3 hour collection window to guarantee freshness and food safety.
+    
+    \item \textbf{Mandatory priority for verified charities} (Section I-F.2 and I-G.1): Large-quantity offers must prioritize charities/foundations, establishing a clear social equity requirement.
+    
+    \item \textbf{Geolocation as a critical and fragile input} (Section III-C.1): Accurate GPS data is essential for all matching; service failures represent a single point of failure.
+    
+    \item \textbf{No physical transport, quality verification or payment within system boundaries} (Section I-B.2): The platform is limited to digital coordination and tracking only.
+    
+    \item \textbf{High sensitivity to no-shows and confirmed-but-uncollected offers} (Section III-C.1): A single no-show can trigger cascading reassignments and increase food waste risk.
+    
+    \item \textbf{Risk of informal external coordination networks} (Section III-C.2): Users may bypass the algorithm via WhatsApp groups, distorting fair matching.
+    
+    \item \textbf{Automatic impact metrics as core output} (Section I-F.3 and III-E): The system must automatically calculate and expose KPIs such as kg recovered and success rate.
+    
+    \item \textbf{High concurrency during peak hours} (Section III-C.1): Demand spikes at lunch and dinner create scalability challenges.
+    
+    \item \textbf{Risk of supplier disengagement if offers remain unclaimed} (Section III-C.2): Repeated unclaimed surpluses may cause cafeterias and restaurants to stop participating.
+    
+    \item \textbf{Potential inequitable distribution due to proximity bias} (Section III-C.2): The matching algorithm may systematically disadvantage users at the edge of the 3 km radius.
+\end{itemize}
 
 \subsection{Measurable Design Requirements}
 
