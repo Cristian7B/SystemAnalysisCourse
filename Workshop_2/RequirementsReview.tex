@@ -43,27 +43,22 @@ The Workshop 1 analysis provided a structured examination of the Food Waste Redu
 \toprule
 \textbf{Req ID} & \textbf{Workshop 1 Finding} & \textbf{Design Requirement} & \textbf{Measurable Target} & \textbf{Category} \\
 \midrule
-REQ-01 & Operational radius limited to 3 km from Engineering Faculty & Geolocation module shall restrict all offers and matches to users within the defined radius & Maximum distance 3 km with ±50 m accuracy (100\% enforcement) & Scalability \\
+REQ-01 & Operational radius limited to 3 km from Engineering Faculty & Geolocation module shall restrict all offers and matches to users within the defined radius & Maximum distance 3 km with ±50 m accuracy (100\% enforcement) & Functional Constraint \\
 REQ-02 & Same-day publication and collection window & System shall enforce same-day publication and strict collection window             & Publication: 2–4 hours before closing; collection  $\leq 3$ hours (100\% compliance) & Reliability \\
 REQ-03 & Mandatory priority for verified charities on large quantities & Matching algorithm shall apply priority weighting to verified charity accounts & $\geq $ 90\% of offers $\geq 10$ kg assigned to charities first & Reliability \\
-REQ-04 & Geolocation as critical input and single point of failure & System shall validate geolocation in real time with fallback mechanism & Automatic rejection if invalid; fallback available in $< 5$ seconds & Reliability\\
+REQ-04 & Geolocation as critical input and single point of failure & System shall validate geolocation in real time with fallback mechanism & Automatic rejection if invalid; fallback available in < 5 seconds & Reliability \\
 REQ-05 & Transport, quality verification and payment outside system boundaries (Section I.B.2) & Platform shall restrict its functionality exclusively to digital coordination, reservation and collection tracking of food surplus & 0 modules related to payment processing, physical transport management or food quality verification present in the system architecture (verified by code review and system testing) & Maintainability \\
 REQ-06 & High sensitivity to no-shows & System shall implement automatic timeout and re-assignment & Timeout = 15 minutes; re-assignment success rate $≥$ 85\% & Reliability\\
-REQ-07 & Risk of informal external coordination networks (Section III.C.2) & System shall monitor anomalous acceptance patterns & Detection and logging of $>$3 coordinated acceptances from the same user group within a 30-minute window for the same offer (audit log mandatory) & Reliability & Reliability\\
+REQ-07 & Risk of informal external coordination networks (Section III.C.2) & System shall monitor anomalous acceptance patterns & Detection and logging of >3 coordinated acceptances from the same user group within a 30-minute window for the same offer (audit log mandatory) & Security \\
 REQ-08 & Impact metrics must be calculated automatically & System shall aggregate and update KPIs in real time & Daily dashboard showing kg recovered and success rate  (updated $<$ 60 s after each collection) & Performance \\
 REQ-09 & High concurrency during peak hours  & Architecture shall support concurrent users without degradation & Handle $≥$ 200 concurrent users with matching time $≤$ 30 s & Scalability\\
 REQ-10 & Risk of supplier disengagement if offers remain unclaimed & System shall generate early-warning alerts for administrators & Alert triggered when unclaimed rate $>$ 20\% for any supplier during 3 consecutive days & Reliability\\
 REQ-11 & Proximity bias causing inequitable distribution & Matching algorithm shall include distance-balancing mechanism & Peripheral users (2.5–3 km) receive $≥$ 15\% of total matches & Reliability\\
 REQ-12 & Real-time notification responsiveness requirement & System shall deliver surplus notifications to candidate users in real time & Push notification delivery $<$ 5 seconds for $\geq$ 95\% of users & Performance \\
-
 REQ-13 & Matching algorithm processing time constraint & Matching algorithm shall generate a candidate assignment within bounded execution time & Matching decision generated in $<$ 2 seconds for $\geq$ 95\% of surplus publications & Performance \\
-
 REQ-14 & Need for reliable pickup confirmation process & System shall require dual confirmation of surplus collection from supplier and recipient & 100\% of completed redistributions require supplier confirmation and recipient confirmation & Reliability \\
-
-REQ-15 & Dependence on cloud infrastructure availability & Platform infrastructure shall maintain high service availability & System uptime $\geq$ 99\% measured monthly & Reliability \\
-
+REQ-15 & Dependence on cloud infrastructure availability & Platform infrastructure shall maintain high service availability & System uptime ≥ 99\% measured monthly & Availability \\
 REQ-16 & Mobile application responsiveness requirement & Mobile interface shall load surplus listings quickly for users & Listing screen load time $<$ 2 seconds for $\geq$ 95\% of sessions & Usability \\
-
 REQ-17 & Repeated no-show user behavior risk & System shall track user reliability and restrict repeated no-show behavior & Users with $>$3 no-shows within 7 days receive temporary restriction of 48 hours & Reliability \\
 \bottomrule
 \end{longtable}
