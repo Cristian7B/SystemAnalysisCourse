@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Branch: feature/requirements-review
 
 **Objective of this branch:**
@@ -29,3 +30,7 @@ Translate all findings, bottlenecks, sensitivity factors, and optimization oppor
 ---
 
 **Next step after merge:** Start Phase 2 – System Architecture (branch `feature/system-architecture`)
+=======
+<<<<<<< HEAD
+>>>>>>> feature/requirements-review
+>>>>>>> fa81771ad22e945d65e18bf06c886e757070326d
