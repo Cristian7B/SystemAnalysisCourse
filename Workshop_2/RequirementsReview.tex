@@ -1,0 +1,66 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{longtable}
+
+\begin{document}
+
+\section{Requirements Analysis}
+
+\subsection{Synthesis of Workshop 1 Findings}
+The Workshop 1 analysis provided a structured examination of the Food Waste Reduction Platform, defining its system boundaries, operational constraints, stakeholders, and key environmental conditions. The analysis also revealed several performance bottlenecks, coordination risks, and sensitivity factors that may affect system reliability and scalability. The following findings synthesize the most relevant insights extracted from the Workshop 1 deliverable and serve as the basis for deriving measurable design requirements for the platform.
+\begin{itemize}
+    \item \textbf{Strict 3 km operational radius} (Section I-C and I-B.2): The system is geographically constrained to a 3 km radius around the Engineering Faculty headquarters, directly impacting geolocation accuracy and matching logic.
+   
+    \item \textbf{Same-day publication and collection windows} (Section I - D): Surplus can only be published 2--4 hours before closing with a maximum 1--3 hour collection window to guarantee freshness and food safety.
+   
+    \item \textbf{Mandatory priority for verified charities} (Section I-F.2 and I-G.1): Large-quantity offers must prioritize charities/foundations, establishing a clear social equity requirement.
+   
+    \item \textbf{Geolocation as a critical and fragile input} (Section III-C.1): Accurate GPS data is essential for all matching; service failures represent a single point of failure.
+   
+    \item \textbf{No physical transport, quality verification or payment within system boundaries} (Section I-B.2): The platform is limited to digital coordination and tracking only.
+   
+    \item \textbf{High sensitivity to no-shows and confirmed-but-uncollected offers} (Section III-C.1): A single no-show can trigger cascading reassignments and increase food waste risk.
+   
+    \item \textbf{Risk of informal external coordination networks} (Section III-C.2): Users may bypass the algorithm via WhatsApp groups, distorting fair matching.
+   
+    \item \textbf{Automatic impact metrics as core output} (Section I-F.3 and III-E): The system must automatically calculate and expose KPIs such as kg recovered and success rate.
+   
+    \item \textbf{High concurrency during peak hours} (Section III-C.1): Demand spikes at lunch and dinner create scalability challenges.
+   
+    \item \textbf{Risk of supplier disengagement if offers remain unclaimed} (Section III-C.2): Repeated unclaimed surpluses may cause cafeterias and restaurants to stop participating.
+   
+    \item \textbf{Potential inequitable distribution due to proximity bias} (Section III-C.2): The matching algorithm may systematically disadvantage users at the edge of the 3 km radius.
+
+    \item \textbf{Real-time notification responsiveness requirement} (Section III-C.1 and III-D): The system relies on immediate user awareness of newly published surpluses to ensure rapid claims within the limited freshness window. Delays in notification delivery may reduce the probability of successful redistribution.
+\end{itemize}
+
+\subsection{Measurable Design Requirements}
+\begin{longtable}{p{1.5cm} p{3cm} p{4cm} p{4cm} p{2cm} }
+\caption{Measurable Design Requirements derived from Workshop 1}
+\label{tab:requirements}\\
+\toprule
+\textbf{Req ID} & \textbf{Workshop 1 Finding} & \textbf{Design Requirement} & \textbf{Measurable Target} & \textbf{Category} \\
+\midrule
+REQ-01 & Operational radius limited to 3 km from Engineering Faculty & Geolocation module shall restrict all offers and matches to users within the defined radius & Maximum distance 3 km with ±50 m accuracy (100\% enforcement) & Functional Constraint \\
+REQ-02 & Same-day publication and collection window & System shall enforce same-day publication and strict collection window             & Publication: 2–4 hours before closing; collection  $\leq 3$ hours (100\% compliance) & Reliability \\
+REQ-03 & Mandatory priority for verified charities on large quantities & Matching algorithm shall apply priority weighting to verified charity accounts & $\geq $ 90\% of offers $\geq 10$ kg assigned to charities first & Reliability \\
+REQ-04 & Geolocation as critical input and single point of failure & System shall validate geolocation in real time with fallback mechanism & Automatic rejection if invalid; fallback available in < 5 seconds & Reliability \\
+REQ-05 & Transport, quality verification and payment outside system boundaries (Section I.B.2) & Platform shall restrict its functionality exclusively to digital coordination, reservation and collection tracking of food surplus & 0 modules related to payment processing, physical transport management or food quality verification present in the system architecture (verified by code review and system testing) & Maintainability \\
+REQ-06 & High sensitivity to no-shows & System shall implement automatic timeout and re-assignment & Timeout = 15 minutes; re-assignment success rate $≥$ 85\% & Reliability\\
+REQ-07 & Risk of informal external coordination networks (Section III.C.2) & System shall monitor anomalous acceptance patterns & Detection and logging of >3 coordinated acceptances from the same user group within a 30-minute window for the same offer (audit log mandatory) & Security \\
+REQ-08 & Impact metrics must be calculated automatically & System shall aggregate and update KPIs in real time & Daily dashboard showing kg recovered and success rate  (updated $<$ 60 s after each collection) & Performance \\
+REQ-09 & High concurrency during peak hours  & Architecture shall support concurrent users without degradation & Handle $≥$ 200 concurrent users with matching time $≤$ 30 s & Scalability\\
+REQ-10 & Risk of supplier disengagement if offers remain unclaimed & System shall generate early-warning alerts for administrators & Alert triggered when unclaimed rate $>$ 20\% for any supplier during 3 consecutive days & Reliability\\
+REQ-11 & Proximity bias causing inequitable distribution & Matching algorithm shall include distance-balancing mechanism & Peripheral users (2.5–3 km) receive $≥$ 15\% of total matches & Reliability\\
+REQ-12 & Real-time notification responsiveness requirement & System shall deliver surplus notifications to candidate users in real time & Push notification delivery $<$ 5 seconds for $\geq$ 95\% of users & Performance \\
+REQ-13 & Matching algorithm processing time constraint & Matching algorithm shall generate a candidate assignment within bounded execution time & Matching decision generated in $<$ 2 seconds for $\geq$ 95\% of surplus publications & Performance \\
+REQ-14 & Need for reliable pickup confirmation process & System shall require dual confirmation of surplus collection from supplier and recipient & 100\% of completed redistributions require supplier confirmation and recipient confirmation & Reliability \\
+REQ-15 & Dependence on cloud infrastructure availability & Platform infrastructure shall maintain high service availability & System uptime ≥ 99\% measured monthly & Availability \\
+REQ-16 & Mobile application responsiveness requirement & Mobile interface shall load surplus listings quickly for users & Listing screen load time $<$ 2 seconds for $\geq$ 95\% of sessions & Usability \\
+REQ-17 & Repeated no-show user behavior risk & System shall track user reliability and restrict repeated no-show behavior & Users with $>$3 no-shows within 7 days receive temporary restriction of 48 hours & Reliability \\
+\bottomrule
+\end{longtable}
+
+\end{document}
