@@ -1,0 +1,103 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{hyperref}
+
+\geometry{margin=1in}
+
+\title{Food Waste Reduction Platform\\Performance and Quality Assurance}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ====================== SECTION 6: PERFORMANCE AND QUALITY ASSURANCE ======================
+\section{Performance and Quality Assurance}
+
+To ensure that the Food Waste Reduction Platform operates efficiently, reliably and at scale, the system incorporates a structured performance monitoring framework based on measurable Key Performance Indicators (KPIs), continuous monitoring strategies, and a feedback-driven improvement cycle.
+
+\subsection{Key Performance Indicators}
+
+The following KPIs are used to evaluate system effectiveness, operational
+performance and social impact (see Table~\ref{tab:kpis} in Appendix~\ref{app:kpis}).
+
+\subsection{Monitoring Strategy}
+
+The platform includes an operational monitoring layer designed to continuously track system performance and detect anomalies in real time.
+
+The monitoring strategy includes the following mechanisms:
+
+\begin{itemize}
+    \item \textbf{Operational Logging}: All system events (surplus publication, matching operations, notifications, and pickups) are recorded in centralized logs.
+    
+    \item \textbf{Real-Time Metrics Collection}: Key system metrics such as response time, concurrent users, and assignment success rate are collected continuously by the analytics module.
+    
+    \item \textbf{Administrative Dashboard}: The Admin Dashboard provides real-time visualization of operational indicators such as recovered kilograms, success rate, supplier activity trends, and pickup completion rates.
+    
+    \item \textbf{Automated Alerts}: Alerts are triggered when predefined thresholds are exceeded, such as high no-show rates, increasing response times, or decreasing surplus recovery rates.
+\end{itemize}
+
+These monitoring mechanisms allow administrators to identify performance issues quickly and respond before they significantly impact the system.
+
+\subsection{Success Criteria and Continuous Improvement Plan}
+
+System success is evaluated based on measurable operational outcomes and long-term participation sustainability.
+
+The platform is considered to be operating successfully when the following criteria are consistently met:
+
+\begin{itemize}
+    \item At least \textbf{80\% of published surplus food is successfully redistributed}.
+    \item The \textbf{matching algorithm generates assignments within 2 seconds}.
+    \item The \textbf{pickup completion rate remains above 85\%}.
+    \item Push notifications are delivered in \textbf{less than 5 seconds for at least 95\% of users}.
+\end{itemize}
+
+To ensure long-term improvement, the platform follows a continuous improvement cycle:
+
+\begin{itemize}
+    \item \textbf{Weekly metric reviews} performed by system administrators to detect operational trends.
+    \item \textbf{Algorithm tuning} based on observed matching fairness, pickup reliability, and geographic distribution.
+    \item \textbf{User behavior analysis} to detect repeated no-shows or anomalous claiming patterns.
+    \item \textbf{System performance optimization} based on observed load patterns during peak hours.
+\end{itemize}
+
+This iterative monitoring and improvement approach ensures that the platform remains scalable, fair, and effective in reducing food waste while maintaining high operational reliability.
+
+\appendix
+
+\section{Key Performance Indicators}
+\label{app:kpis}
+
+Table~\ref{tab:kpis} shows the KPIs used to evaluate system effectiveness.
+
+\begin{table*}[!t]
+\centering
+\caption{Key Performance Indicators}
+\label{tab:kpis}
+
+\begin{tabular}{p{3.5cm} p{9cm} p{3cm}}
+\toprule
+\textbf{KPI} & \textbf{Description} & \textbf{Target Value} \\
+\midrule
+
+Surplus Recovery Rate & Percentage of published food surplus that is successfully collected. & $\geq$80\% \\
+
+Average Matching Time & Time required by the matching engine to assign a collector after publication. & $<$2 seconds \\
+
+Successful Pickup Rate & Percentage of confirmed assignments that result in completed pickups. & $\geq$85\% \\
+
+Notification Delivery Time & Time required to deliver push notifications to candidate users. & $<$5 seconds \\
+
+System Response Time & Average backend API response time during normal operation. & $<$500 ms \\
+
+Concurrent User Capacity & Maximum number of simultaneous active users supported without performance degradation. & $\geq$200 users \\
+
+\bottomrule
+\end{tabular}
+
+\end{table*}
+
+\end{document}
