@@ -1,0 +1,40 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{cite}
+\usepackage[cmex10]{amsmath,amssymb}
+\usepackage{hyperref}
+
+\begin{document}
+
+\section{Risk and Complexity Management}
+
+By recognizing the sensitivity factors, emergent behaviors, and chaotic dynamics described in Workshop 1, these can be classified as follows:
+
+\subsubsection{Critical Input Sensitivities}
+
+\begin{itemize}
+    \item \textbf{High-Demand Surplus Events}: Many users attempt to claim the same surplus at the same time, creating a risk of race conditions and allocation conflicts.
+    \item \textbf{Large Volumes of Simultaneous Users}: Peak concurrency during busy hours may cause response time degradation and possible database inconsistencies.
+    \item \textbf{Geolocation Service Failure}: If there is an external failure of GPS or the maps API, the matching algorithm stops because it cannot calculate distances.
+    \item \textbf{Confirmed Match with No Pickup}: The user accepts but does not collect within the defined time, causing the surplus to remain locked and eventually be lost.
+\end{itemize}
+
+\subsubsection{Emergent Behaviors}
+
+\begin{itemize}
+    \item \textbf{Informal Priority Networks Among Users}: There is a possibility that WhatsApp groups or external agreements may emerge, bypassing the algorithm and distorting fairness.
+    \item \textbf{Supplier Disengagement Under Low Demand}: If surpluses are not claimed, suppliers may stop offering them, creating a negative cycle for the system.
+    \item \textbf{Inequitable Distribution Patterns}: The algorithm consistently favors the closest users, which may lead peripheral users to disengage.
+\end{itemize}
+
+\subsubsection{Chaotic System Dynamics}
+
+\begin{itemize}
+    \item \textbf{Nonlinear Cascade from a Single No-Show}: One no-show triggers successive reassignments that consume time until the surplus expires.
+    \item \textbf{Demand Amplification Through Notifications}: Simultaneous notifications to many users may create an artificial demand spike that collapses the system.
+    \item \textbf{Feedback Loop Between Metrics and Supplier Behavior}: If the dashboard shows low performance rates, suppliers may become demotivated and post fewer surpluses, further worsening the metrics.
+\end{itemize}
+
+Based on these ten factors, the following risk and complexity table has been developed (see Table~\ref{tab:risk-mitigation} in Appendix~\ref{app:complexity_risk}), designing specific mitigation mechanisms for each factor, as well as proposing monitoring, feedback, and control strategies.
+
+\end{document}
