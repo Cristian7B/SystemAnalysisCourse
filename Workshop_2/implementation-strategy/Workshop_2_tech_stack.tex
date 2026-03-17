@@ -1,0 +1,491 @@
+%=================================================================
+% SYSTEM DESIGN DOCUMENT - WORKSHOP 2
+% Food Waste Reduction Platform
+% IEEEtran template (ready for Overleaf or local compilation)
+%=================================================================
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage[cmex10]{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage[colorlinks=true, allcolors=black]{hyperref}
+\usepackage{enumitem}
+\usepackage{tikz}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{longtable}
+
+% ====================== TITLE & AUTHORS ======================
+\title{%
+  \fontsize{24}{28}\selectfont\bfseries
+  \parbox{0.9\textwidth}{\centering
+    System Design Document:\\
+    Food Waste Reduction Platform\\
+    \vspace{0.2cm}
+    \large Workshop 2 — Systems Design (Semester 2026-I)
+  }%
+}
+
+\author{
+  \IEEEauthorblockN{\textbf{Luna Alejandra Sandoval Rodriguez}}
+  \IEEEauthorblockA{20241020053 \\
+                    \textit{Systems Analyst / Project Lead}}
+  \and
+  \IEEEauthorblockN{\textbf{Cristian Camilo Bonilla Lizarazo}}
+  \IEEEauthorblockA{20241020015 \\
+                    \textit{Systems Analyst / Frontend Developer}}
+  \linebreakand
+  \IEEEauthorblockN{\textbf{Nicolas Rodriguez Granados}}
+  \IEEEauthorblockA{2024102037 \\
+                    \textit{Systems Analyst / Backend Developer}}
+  \and
+  \IEEEauthorblockN{\textbf{Juan Sebastian Bravo Rojas}}
+  \IEEEauthorblockA{20241020004 \\
+                    \textit{Systems Analyst / Database Specialist}}
+}
+
+\begin{document}
+
+\maketitle
+
+% ====================== ABSTRACT ======================
+\begin{abstract}
+This document presents...
+\end{abstract}
+
+% ====================== SECTION 1: EXECUTIVE SUMMARY ======================
+\section{Executive Summary}
+
+This document...
+
+% ====================== SECTION 2: REQUIREMENTS ANALYSIS ======================
+\section{Requirements Analysis}
+
+\subsection{Synthesis of Workshop 1 Findings}
+
+The \href{https://github.com/Cristian7B/SystemAnalysisCourse/blob/feature/system-architecture/Workshop_1/Workshop_1.pdf}{Workshop 1} analysis provided a structured examination of the Food Waste Reduction Platform, defining its system boundaries, operational constraints, stakeholders, and key environmental conditions. The analysis also revealed several performance bottlenecks, coordination risks, and sensitivity factors that may affect system reliability and scalability. The following findings synthesize the most relevant insights extracted from the Workshop 1 deliverable and serve as the basis for deriving measurable design requirements for the platform.
+
+\begin{itemize}
+    \item \textbf{Strict 3 km operational radius} (Section I-C and I-B.2): The system is geographically constrained to a 3 km radius around the Engineering Faculty headquarters, directly impacting geolocation accuracy and matching logic.
+    \item \textbf{Same-day publication and collection windows} (Section I-D): Surplus can only be published 2--4 hours before closing with a maximum 1--3 hour collection window to guarantee freshness and food safety.
+    \item \textbf{Mandatory priority for verified charities} (Section I-F.2 and I-G.1): Large-quantity offers must prioritize charities/foundations, establishing a clear social equity requirement.
+    \item \textbf{Geolocation as a critical and fragile input} (Section III-C.1): Accurate GPS data is essential for all matching; service failures represent a single point of failure.
+    \item \textbf{No physical transport, quality verification or payment within system boundaries} (Section I-B.2): The platform is limited to digital coordination and tracking only.
+    \item \textbf{High sensitivity to no-shows and confirmed-but-uncollected offers} (Section III-C.1): A single no-show can trigger cascading reassignments and increase food waste risk.
+    \item \textbf{Risk of informal external coordination networks} (Section III-C.2): Users may bypass the algorithm via WhatsApp groups, distorting fair matching.
+    \item \textbf{Automatic impact metrics as core output} (Section I-F.3 and III-E): The system must automatically calculate and expose KPIs such as kg recovered and success rate.
+    \item \textbf{High concurrency during peak hours} (Section III-C.1): Demand spikes at lunch and dinner create scalability challenges.
+    \item \textbf{Risk of supplier disengagement if offers remain unclaimed} (Section III-C.2): Repeated unclaimed surpluses may cause cafeterias and restaurants to stop participating.
+    \item \textbf{Potential inequitable distribution due to proximity bias} (Section III-C.2): The matching algorithm may systematically disadvantage users at the edge of the 3 km radius.
+    \item \textbf{Real-time notification responsiveness requirement} (Section III-C.1 and III-D): The system relies on immediate user awareness of newly published surpluses to ensure rapid claims within the limited freshness window. Delays in notification delivery may reduce the probability of successful redistribution.
+\end{itemize}
+
+\subsection{Measurable Design Requirements}
+
+Table~\ref{tab:requirements} (see Appendix~\ref{app:requirements}) presents the complete set of 17 measurable design requirements derived from the Workshop 1 findings. Each requirement is traceable to a specific finding, includes a quantified target, and is classified by category (Functional Constraint, Reliability, Performance, Scalability, Security, Availability, Usability, or Maintainability).
+
+% ====================== SECTION 3: SYSTEM ARCHITECTURE ======================
+\section{System Architecture}
+
+\subsection{High-Level Architecture Diagram}
+
+Figure~\ref{fig:system_architecture} (see also Appendix~\ref{fig:architecture_appendix}) presents the high-level architecture of the food surplus redistribution platform, illustrating the main system components, their interactions, and the data flow between modules.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{System-Architecture.png}
+\caption{High-level architecture of the food surplus redistribution platform showing the main components, subsystems, and data flows.}
+\label{fig:system_architecture}
+\end{figure}
+
+\subsection{Component Responsibilities}
+\begin{table}[h]
+\centering
+\caption{Component Responsibilities}
+\label{tab:components}
+\begin{tabular}{@{}p{2.0cm}p{1.5cm}p{4.5cm}@{}}
+\toprule
+\textbf{Component} & \textbf{Type} & \textbf{Responsibility} \\
+\midrule
+Mobile App & UI & Allows users to register, publish food surplus, receive notifications and track food collection. \\
+User Mgmt & Service & Handles user authentication, profile management and role management (donors, volunteers, beneficiaries). \\
+Surplus Module & Service & Registers food surplus data such as type, quantity, expiration time and availability. \\
+Geo Service & Service & Manages location data and calculates proximity between donors and potential collectors. \\
+Matching Engine & Logic & Matches available surplus with nearby volunteers or beneficiaries using location and availability data. \\
+Assignment Module & Service & Assigns collection tasks and coordinates pickup logistics between donors and collectors. \\
+Tracking Module & Service & Monitors the status of food collection and confirms delivery completion. \\
+Notification Service & Service & Sends alerts and updates regarding assignments, confirmations and system events. \\
+Database & Data & Stores users, surplus records, assignments, system logs and operational data. \\
+Analytics Module & Analytics & Processes system activity data to generate metrics and performance indicators. \\
+Admin Dashboard & UI & Provides administrators with monitoring tools, reports and system statistics. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Interfaces and Data Flows}
+
+\begin{table}[h]
+\centering
+\caption{System Interfaces and Process Data Flows}
+\label{tab:system_interfaces}
+
+\begin{tabular}{@{}p{1.8cm}p{2.0cm}p{2.5cm}p{1.2cm}@{}}
+\toprule
+\textbf{Interface} & \textbf{Source $\rightarrow$ Destination} & \textbf{Data Exchanged} & \textbf{Protocol} \\
+\midrule
+User Management API & Mobile App $\rightarrow$ User Service & Credentials (auth), profile details, and role assignment (Donor/Recipient). & HTTPS \\
+\midrule
+Surplus Registration & Mobile App $\rightarrow$ Surplus Service & Food item details (type, quantity, expiry timestamp) and image URLs. & HTTPS \\
+\midrule
+Geolocation API & Mobile App $\rightarrow$ Geo Service & Real-time GPS coordinates (latitude, longitude) for 3km radius filtering. & HTTPS \\
+\bottomrule
+\end{tabular}
+
+\end{table}
+
+\begin{table}[h]
+\centering
+\label{tab:system_interfaces}
+\begin{tabular}{@{}p{1.8cm}p{2.0cm}p{2.5cm}p{1.2cm}@{}}
+\toprule
+\textbf{Interface} & \textbf{Source $\rightarrow$ Destination} & \textbf{Data Exchanged} & \textbf{Protocol} \\
+\midrule
+Matching Engine & Geo Service $\rightarrow$ Matching Algorithm & Active user IDs, proximity scores, and food urgency priority levels. & Internal \\
+\midrule
+Notification API & Notification Service $\rightarrow$ Mobile App & Push payload containing assignment alerts, surplus details, and response timeout. & Push \\
+\midrule
+Closure \& Verification & Mobile App $\rightarrow$ Assignment Service & QR code verification data or photo evidence to confirm successful collection. & HTTPS \\
+\end{tabular}
+\end{table}
+
+The \bold{User Interface flow diagrams and System Data Flow diagrams} are located in the repository folder \href{https://github.com/Cristian7B/SystemAnalysisCourse/tree/main/Workshop_2/design/diagrams/interface-and-data-flows}{Workshop_2/design/diagrams/interface-and-data-flows}. These diagrams illustrate, in a detailed and sequential manner, the complete flow of information within the Food Waste Reduction Platform: from the publication of a surplus by the supplier, through the matching algorithm, notification delivery, the claimant’s acceptance or rejection, and finally to the confirmation of collection and the update of impact metrics.
+
+
+% ====================== SECTION 4: IMPLEMENTATION STRATEGY ======================
+\section{Implementation Strategy}
+
+\subsection{Technology Stack}
+
+The technology stack was selected based on three criteria: direct alignment with the system's real-time coordination requirements, team familiarity with the frameworks, and suitability for an academic prototype with constrained resources.
+
+\subsubsection{Frontend — React Native + Expo}
+
+React Native with Expo is adopted as the mobile framework for three primary reasons. First, it enables a single codebase for both iOS and Android, reducing development overhead for an academic team. Second, Expo Go facilitates on-device testing without a native build step, accelerating iteration cycles. Third, the Expo ecosystem provides native access to GPS, camera (for photo-based collection confirmation), and push notifications via Expo Notifications and FCM — all components critical to REQ-04, REQ-12, and REQ-14. State management is handled by \textbf{Zustand} (lightweight, no boilerplate) and \textbf{React Query} for data fetching with client-side cache, reducing redundant API calls during concurrency peaks (REQ-09).
+
+\subsubsection{Backend — NestJS (Node.js)}
+
+NestJS is selected as the backend framework given the team's existing proficiency with it. Its decorator-based modular architecture facilitates the separation of SurplusModule, MatchingModule, NotificationModule, and AnalyticsModule with low coupling, directly mirroring the four-subsystem decomposition established in Workshop~1. NestJS provides native WebSocket support via @nestjs/websockets for real-time collection tracking (REQ-14) and integrates with \textbf{Bull} queues over Redis to implement a serialized matching engine that prevents race conditions (REQ-09). Prisma ORM is preferred over TypeORM for its compile-time type safety and more predictable migration workflow.
+
+\subsubsection{Database — PostgreSQL + Redis}
+
+PostgreSQL serves as the primary persistence layer due to its native support for geospatial types via the \textbf{PostGIS} extension, enabling the 3~km radius constraint (REQ-01) to be enforced directly in SQL using ST\_DWithin queries. Redis fulfills a dual role: caching frequent matching results and storing JWT session tokens, reducing load on PostgreSQL during peak concurrency windows at lunch and dinner hours (REQ-09).
+
+\subsubsection{External Services}
+
+Table~\ref{tab:tech_stack} summarizes the external services integrated into the platform, their functional roles, and the requirements they address.
+
+\begin{table}[h]
+\centering
+\footnotesize
+\caption{External Services and Requirement Coverage}
+\label{tab:tech_stack}
+\begin{tabular}{p{2.8cm} p{2.8cm} p{1.8cm}}
+\toprule
+\textbf{Service} & \textbf{Role} & \textbf{REQ} \\
+\midrule
+Google Maps API (fallback: OpenStreetMap) & Geolocation + 3~km radius filtering & REQ-01, REQ-04 \\[4pt]
+Expo Push + FCM & Staggered push notifications & REQ-12 \\[4pt]
+Cloudinary & Surplus image storage & --- \\[4pt]
+Docker Compose & Local orchestration of all services & REQ-15 \\[4pt]
+Sentry + Grafana & Error tracking + infrastructure metrics & REQ-08 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% -----------------------------------------------------
+\subsection{Implementation Phases}
+
+The implementation is structured in three sequential phases totaling 6 weeks, aligned with the 2026-I academic semester. Each phase maps directly to the measurable design requirements defined in Table~\ref{tab:requirements}.
+
+\subsubsection{Phase 1 — Core Infrastructure (Weeks 1–2)}
+
+\textit{Objective:} Deliver a navigable MVP covering the basic surplus publication and listing flow.
+
+\begin{itemize}
+  \item Authentication module: registration and login with JWT, roles \texttt{DONOR | RECIPIENT | CHARITY | ADMIN}.
+  \item Surplus CRUD with temporal window validation (REQ-02) and 3~km radius restriction via PostGIS (REQ-01).
+  \item Mobile screens: available surplus listing, donor publication form, pickup point map.
+  \item Local environment setup via Docker Compose, orchestrating PostgreSQL, Redis, and NestJS with hot-reload.
+  \item CI/CD pipeline with GitHub Actions: lint and unit tests on every pull request.
+\end{itemize}
+
+\textit{Deliverable:} Functional app navigable in Expo Go, testable by the team on a shared local network.
+
+\subsubsection{Phase 2 — Matching \& Coordination (Weeks 3–4)}
+
+\textit{Objective:} Implement the redistribution core with all critical business rules.
+
+\begin{itemize}
+  \item Matching engine: proximity-based algorithm weighted as 50\% distance + 30\% fairness score + 20\% charity priority (REQ-03, REQ-11), implemented as a Bull queue job to enforce request serialization and prevent race conditions (REQ-09).
+  \item Staggered push notifications by proximity tier: first 500~m, then 1~km, then 3~km, with a maximum flow of 50 simultaneous notifications per surplus (Table~\ref{tab:risks}, demand amplification mitigation).
+  \item Automatic 15-minute timeout and reassignment with compressed time window (REQ-06); maximum of 3 reassignments per surplus item.
+  \item Dual collection confirmation: QR scan or photo upload from the mobile app (REQ-14).
+  \item WebSocket-based real-time tracking of collection status.
+  \item Redis session throttling and anomalous acceptance pattern detection (REQ-07).
+  \item Geolocation fallback: manual address input with server-side radius validation (REQ-04).
+\end{itemize}
+
+\textit{Deliverable:} End-to-end redistribution system running locally, including all error flows (no-show, rejection, expiration).
+
+\subsubsection{Phase 3 — Analytics \& Prototype Validation (Weeks 5–6)}
+
+\textit{Objective:} Deliver a locally validated prototype demonstrating the full platform behaviour.
+
+\begin{itemize}
+  \item Administration dashboard with real-time KPIs: kilograms recovered, redistribution success rate, average matching time, and supplier activity trend (REQ-08, Table~\ref{tab:kpis}).
+  \item Equity index: report of geographic assignment distribution to detect proximity bias (REQ-11).
+  \item Automated alerts: \texttt{unclaimed\_rate > 20\%} over 3 consecutive days per supplier (REQ-10); automatic 48-hour account restriction after 3 no-shows within 7 days (REQ-17).
+  \item Sentry integration for local error tracking; Grafana for infrastructure metrics visualization on the local Docker stack.
+  \item User reliability score: initialized at 100, decremented by 20 points per no-show, with restriction triggered at the defined threshold (REQ-17).
+  \item Functional demonstration with simulated donor and recipient accounts on the local environment.
+\end{itemize}
+
+\textit{Deliverable:} Fully functional local prototype, Swagger API documentation, and functional validation report.
+
+% -----------------------------------------------------
+\subsection{Deployment Strategy and Interface Standards}
+
+\subsubsection{Local Deployment Environment}
+
+All system components are orchestrated locally via Docker Compose throughout the six-week development period. The stack comprises three containers: a PostgreSQL instance with the PostGIS extension enabled, a Redis instance for session management and queue processing, and the NestJS API server with hot-reload enabled for development. The mobile application runs on physical or emulated devices via Expo Go, connecting to the local API over the shared development network.
+
+No remote or cloud deployment is planned within the scope of this prototype. All validation and functional demonstrations are performed on the local environment, which is considered sufficient to verify the measurable targets defined in Table~\ref{tab:requirements}.
+
+\subsubsection{Interface Standards}
+
+All REST interfaces follow the protocol and data exchange specifications defined in Table~\ref{tab:interfaces}: HTTPS for synchronous endpoints, WebSockets for tracking events, and JSON payloads with ISO~8601 timestamps. Critical endpoints for matching and notification delivery include idempotency keys to prevent duplicate processing under retry conditions. The API is self-documented using NestJS \@ApiProperty decorators with Swagger UI, available at /api/docs on the local development server.
+
+% ====================== SECTION 5: RISK AND COMPLEXITY MANAGEMENT ======================
+\section{Risk and Complexity Management}
+By recognizing the sensitivity factors, emergent behaviors, and chaotic dynamics described in Workshop 1, these can be classified as follows:
+\subsubsection{Critical Input Sensitivities}
+
+\begin{itemize}
+    \item \textbf{High-Demand Surplus Events}: Many users attempt to claim the same surplus at the same time, creating a risk of race conditions and allocation conflicts.
+    \item \textbf{Large Volumes of Simultaneous Users}: Peak concurrency during busy hours may cause response time degradation and possible database inconsistencies.
+    \item \textbf{Geolocation Service Failure}: If there is an external failure of GPS or the maps API, the matching algorithm stops because it cannot calculate distances.
+    \item \textbf{Confirmed Match with No Pickup}: The user accepts but does not collect within the defined time, causing the surplus to remain locked and eventually be lost.
+\end{itemize}
+
+\subsubsection{Emergent Behaviors}
+
+\begin{itemize}
+    \item \textbf{Informal Priority Networks Among Users}: There is a possibility that WhatsApp groups or external agreements may emerge, bypassing the algorithm and distorting fairness.
+    \item \textbf{Supplier Disengagement Under Low Demand}: If surpluses are not claimed, suppliers may stop offering them, creating a negative cycle for the system.
+    \item \textbf{Inequitable Distribution Patterns}: The algorithm consistently favors the closest users, which may lead peripheral users to disengage.
+\end{itemize}
+
+\subsubsection{Chaotic System Dynamics}
+
+\begin{itemize}
+    \item \textbf{Nonlinear Cascade from a Single No-Show}: One no-show triggers successive reassignments that consume time until the surplus expires.
+    \item \textbf{Demand Amplification Through Notifications}: Simultaneous notifications to many users may create an artificial demand spike that collapses the system.
+    \item \textbf{Feedback Loop Between Metrics and Supplier Behavior}: If the dashboard shows low performance rates, suppliers may become demotivated and post fewer surpluses, further worsening the metrics.
+\end{itemize}
+
+Based on these ten factors, the following risk and complexity table has been developed (see Table~\ref{tab:risk-mitigation} in Appendix~\ref{app:complexity_risk}), designing specific mitigation mechanisms for each factor, as well as proposing monitoring, feedback, and control strategies.
+
+% ====================== SECTION 6: PERFORMANCE AND QUALITY ASSURANCE ======================
+\section{Performance and Quality Assurance}
+
+To ensure that the Food Waste Reduction Platform operates efficiently, reliably and at scale, the system incorporates a structured performance monitoring framework based on measurable Key Performance Indicators (KPIs), continuous monitoring strategies, and a feedback-driven improvement cycle.
+
+\subsection{Key Performance Indicators}
+
+The following KPIs are used to evaluate system effectiveness, operational
+performance and social impact (see Table~\ref{tab:kpis} in Appendix~\ref{app:kpis}).
+
+\subsection{Monitoring Strategy}
+
+The platform includes an operational monitoring layer designed to continuously track system performance and detect anomalies in real time.
+
+The monitoring strategy includes the following mechanisms:
+
+\begin{itemize}
+    \item \textbf{Operational Logging}: All system events (surplus publication, matching operations, notifications, and pickups) are recorded in centralized logs.
+    
+    \item \textbf{Real-Time Metrics Collection}: Key system metrics such as response time, concurrent users, and assignment success rate are collected continuously by the analytics module.
+    
+    \item \textbf{Administrative Dashboard}: The Admin Dashboard provides real-time visualization of operational indicators such as recovered kilograms, success rate, supplier activity trends, and pickup completion rates.
+    
+    \item \textbf{Automated Alerts}: Alerts are triggered when predefined thresholds are exceeded, such as high no-show rates, increasing response times, or decreasing surplus recovery rates.
+\end{itemize}
+
+These monitoring mechanisms allow administrators to identify performance issues quickly and respond before they significantly impact the system.
+
+\subsection{Success Criteria and Continuous Improvement Plan}
+
+System success is evaluated based on measurable operational outcomes and long-term participation sustainability.
+
+The platform is considered to be operating successfully when the following criteria are consistently met:
+
+\begin{itemize}
+    \item At least \textbf{80\% of published surplus food is successfully redistributed}.
+    \item The \textbf{matching algorithm generates assignments within 2 seconds}.
+    \item The \textbf{pickup completion rate remains above 85\%}.
+    \item Push notifications are delivered in \textbf{less than 5 seconds for at least 95\% of users}.
+\end{itemize}
+
+To ensure long-term improvement, the platform follows a continuous improvement cycle:
+
+\begin{itemize}
+    \item \textbf{Weekly metric reviews} performed by system administrators to detect operational trends.
+    \item \textbf{Algorithm tuning} based on observed matching fairness, pickup reliability, and geographic distribution.
+    \item \textbf{User behavior analysis} to detect repeated no-shows or anomalous claiming patterns.
+    \item \textbf{System performance optimization} based on observed load patterns during peak hours.
+\end{itemize}
+
+This iterative monitoring and improvement approach ensures that the platform remains scalable, fair, and effective in reducing food waste while maintaining high operational reliability.
+
+% ====================== SECTION 7: CONCLUSION AND NEXT STEPS ======================
+\section{Conclusion and Next Steps}
+
+...
+
+Next steps:
+\begin{itemize}
+    \item ...
+\end{itemize}
+
+\begin{thebibliography}{1}
+\bibitem{workshop1} ``Food Waste Reduction Mobile Application, A Rigorous System Analysis,'' Workshop 1 Deliverable, 2026.
+\end{thebibliography}
+
+% ====================== APPENDIX ======================
+\appendix
+
+% -----------------------------------------------------
+\section{Complete Set of Measurable Design Requirements}
+\label{app:requirements}
+
+The~\ref{tab:requirements}  table presents the complete set of measurable design requirements derived from the Workshop 1 findings. Each requirement is traceable to a specific finding, includes a quantified target, and is classified by category.
+
+\begin{table*}[!t]
+\centering
+\footnotesize
+\caption{Measurable Design Requirements derived from Workshop 1}
+\label{tab:requirements}
+
+\resizebox{\textwidth}{!}{
+\begin{tabular}{p{1.1cm} p{3.0cm} p{4.0cm} p{4.0cm} p{1.8cm}}
+\toprule
+\textbf{Req ID} & \textbf{Workshop 1 Finding} & \textbf{Design Requirement} & \textbf{Measurable Target} & \textbf{Category} \\
+\midrule
+REQ-01 & Operational radius limited to 3 km from Engineering Faculty & Geolocation module shall restrict all offers and matches to users within the defined radius & Maximum distance 3 km with $\pm$50 m accuracy (100\% enforcement) & Functional Constraint \\[4pt]
+REQ-02 & Same-day publication and collection window & System shall enforce same-day publication and strict collection window & Publication: 2–4 hours before closing; collection $\leq$ 3 hours (100\% compliance) & Reliability \\[4pt]
+REQ-03 & Mandatory priority for verified charities on large quantities & Matching algorithm shall apply priority weighting to verified charity accounts & $\geq$90\% of offers $\geq$10 kg assigned to charities first & Reliability \\[4pt]
+REQ-04 & Geolocation as critical input and single point of failure & System shall validate geolocation in real time with fallback mechanism & Automatic rejection if invalid; fallback available in $<$5 seconds & Reliability \\[4pt]
+REQ-05 & Transport, quality verification and payment outside system boundaries (Section I-B.2) & Platform shall restrict its functionality exclusively to digital coordination, reservation and collection tracking of food surplus & 0 modules related to payment processing, physical transport management or food quality verification present in the system architecture (verified by code review and system testing) & Maintainability \\[4pt]
+REQ-06 & High sensitivity to no-shows & System shall implement automatic timeout and re-assignment & Timeout = 15 minutes; re-assignment success rate $\geq$85\% & Reliability \\[4pt]
+REQ-07 & Risk of informal external coordination networks (Section III-C.2) & System shall monitor anomalous acceptance patterns & Detection and logging of $>$3 coordinated acceptances from the same user group within a 30-minute window for the same offer (audit log mandatory) & Security \\[4pt]
+REQ-08 & Impact metrics must be calculated automatically & System shall aggregate and update KPIs in real time & Daily dashboard showing kg recovered and success rate (updated $<$60 s after each collection) & Performance \\[4pt]
+REQ-09 & High concurrency during peak hours & Architecture shall support concurrent users without degradation & Handle $\geq$200 concurrent users with matching time $\leq$30 s & Scalability \\[4pt]
+REQ-10 & Risk of supplier disengagement if offers remain unclaimed & System shall generate early-warning alerts for administrators & Alert triggered when unclaimed rate $>$20\% for any supplier during 3 consecutive days & Reliability \\[4pt]
+REQ-11 & Proximity bias causing inequitable distribution & Matching algorithm shall include distance-balancing mechanism & Peripheral users (2.5–3 km) receive $\geq$15\% of total matches & Reliability \\[4pt]
+REQ-12 & Real-time notification responsiveness requirement & System shall deliver surplus notifications to candidate users in real time & Push notification delivery $<$5 seconds for $\geq$95\% of users & Performance \\[4pt]
+REQ-13 & Matching algorithm processing time constraint & Matching algorithm shall generate a candidate assignment within bounded execution time & Matching decision generated in $<$2 seconds for $\geq$95\% of surplus publications & Performance \\[4pt]
+REQ-14 & Need for reliable pickup confirmation process & System shall require dual confirmation of surplus collection from supplier and recipient & 100\% of completed redistributions require supplier confirmation and recipient confirmation & Reliability \\[4pt]
+REQ-15 & Dependence on cloud infrastructure availability & Platform infrastructure shall maintain high service availability & System uptime $\geq$99\% measured monthly & Availability \\[4pt]
+REQ-16 & Mobile application responsiveness requirement & Mobile interface shall load surplus listings quickly for users & Listing screen load time $<$2 seconds for $\geq$95\% of sessions & Usability \\[4pt]
+REQ-17 & Repeated no-show user behavior risk & System shall track user reliability and restrict repeated no-show behavior & Users with $>$3 no-shows within 7 days receive temporary restriction of 48 hours & Reliability \\
+\bottomrule
+\end{tabular}
+}
+
+\end{table*}
+
+% -----------------------------------------------------
+\section{High-Level Architecture Diagram}
+\label{app:system_architecture}
+
+Figure~\ref{fig:architecture_appendix} presents the full-resolution architecture diagram of the Food Waste Reduction Platform. The diagram illustrates the interaction between the mobile application, service modules, matching engine, database layer, and analytics subsystem.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{System-Architecture.png}
+\caption{High-Level Architecture of the Food Surplus Redistribution Platform}
+\label{fig:architecture_appendix}
+\end{figure*}
+
+% -----------------------------------------------------
+\section{Risk and Complexity Analysis with Mitigation Strategies (Cross-reference: Workshop 1 – Section III.C)}
+\label{app:complexity_risk}
+
+Table~\ref{tab:risk-mitigation} presents the complete analysis of system risks and complexity, developed from the 10 sensitivity factors, emergent behaviors, and chaotic dynamics identified in Workshop 1.
+
+\begin{table*}[!t]
+\centering
+\caption{Complexity and Risk Mitigation}
+\label{tab:risk-mitigation}
+
+\resizebox{\textwidth}{!}{
+\begin{tabular}{p{1.8cm} p{1.2cm} c p{2.8cm} p{3.5cm} p{3.1cm} p{3.1cm}}
+\toprule
+\textbf{Risk (Workshop 1)} & \textbf{Category} & \textbf{Risk Level} & \textbf{Specific Mitigation Mechanism} & \textbf{Monitoring and Feedback Strategies} & \textbf{Error Handling Mechanisms} & \textbf{Failure Mode and Resilience} \\
+\midrule
+High-Demand Surplus Events & Critical Input & High & Serialization with DB locking (\texttt{SELECT FOR UPDATE}) + message queue. Limit of 1 claim per surplus. & Real-time \texttt{contention\_rate} metric (admin dashboard). Email/Slack alert if $>20\%$. & 60-second acceptance timeout. ``Fair lottery'' mode if $>5$ simultaneous requests. & Concurrency failure $\rightarrow$ system remains operational (only the first claim succeeds). \\
+Large Volumes of Simultaneous Users & Critical Input & High & Automatic backend scaling. Rate limiting per IP/user. & \texttt{concurrent\_users} and average response time metrics (Prometheus + Grafana). & Read caching (Redis) + fallback to offline mode (local data in the app). & Load spike $\rightarrow$ controlled degradation (``loading\ldots'' response instead of crash). \\
+Geolocation Service Failure & Critical Input & High & Manual fallback + last-known-location cache. Use of OpenStreetMap as backup for Google Maps. & \texttt{geo\_failures\_per\_hour} metric with automatic alerts. & Manual address input + validation within a 3 km radius. & Without geolocation $\rightarrow$ matching is performed using manual radius (partial resilience). \\
+\midrule
+Confirmed Match with No Pickup & Critical Input & High & User reliability score (starts at 100, decreases by 20 points per no-show). Automatic reassignment after timeout. & Dashboard: \texttt{no\_show\_rate} per user and globally. Push notification to supplier. & Dynamic timeout (30--90 minutes depending on remaining expiration time). & Surplus is automatically released $\rightarrow$ it never remains locked. \\
+\midrule
+Informal Priority Networks Among Users & Emergent Behavior & Medium & Detection of anomalous patterns (repeated acceptances in $<10$ s). ``External coordination suspected'' flag. & Weekly ``acceptance anomalies'' report in the dashboard. & Temporary ranking penalty in the algorithm if a pattern is detected. & Fairness maintained even if external groups exist. \\
+\midrule
+Supplier Disengagement Under Low Demand & Emergent Behavior & Medium & Automatic recommendation system and push reminders for suppliers. & \texttt{supplier\_activity\_trend} metric (posts/week). Alerts if it drops $>30\%$. & Personalized supplier dashboard showing ``real impact'' (kg recovered). & Positive feedback prevents the abandonment cycle. \\
+\midrule
+Inequitable Distribution Patterns & Emergent Behavior & Medium & Hybrid algorithm: 50\% distance + 30\% fairness score (peripheral users move up in ranking). & \texttt{equity\_index} metric (geographic distribution of claims). & Dynamic weight adjustment based on weekly analysis. & Distant users periodically receive priority $\rightarrow$ prevents peripheral disengagement. \\
+\midrule
+Nonlinear Cascade from a Single No-Show & Chaotic Dynamics & High & Chain reassignment with compressed time window (reduced by 50\% at each reassignment). & Cascade visualization in dashboard + ``active chain'' alert. & Maximum limit of 3 reassignments per surplus. & Chain automatically stops before total expiration. \\
+\midrule
+Demand Amplification Through Notifications & Chaotic Dynamics & High & Staggered notifications by proximity tier (first 500 m, then 1 km, then 3 km). & \texttt{notification\_spike} metric (claims/minute). & Flow control (max 50 simultaneous notifications per surplus). & Artificial demand spikes are distributed over time $\rightarrow$ prevents system collapse. \\
+\midrule
+Feedback Loop Between Metrics and Supplier Behavior & Chaotic Dynamics & Medium & Contextualized presentation of metrics (trends + Bogotá benchmark). Individualized report sent to suppliers. & Automatic alert if \texttt{publication\_rate} drops for 2 consecutive weeks. & Dashboard with motivational messages (``You saved 42 kg this week!''). & Breaks the negative cycle by highlighting real impact. \\
+\bottomrule
+\end{tabular}
+}
+
+\end{table*}
+
+%-----------------------------------------------
+\section{Key Performance Indicators}
+\label{app:kpis}
+
+Table~\ref{tab:kpis} shows the KPIs used to evaluate system effectiveness.
+
+\begin{table*}[!t]
+\centering
+\caption{Key Performance Indicators}
+\label{tab:kpis}
+
+\begin{tabular}{p{3.5cm} p{9cm} p{3cm}}
+\toprule
+\textbf{KPI} & \textbf{Description} & \textbf{Target Value} \\
+\midrule
+Surplus Recovery Rate & Percentage of published food surplus that is successfully collected. & $\geq$80\% \\
+
+Average Matching Time & Time required by the matching engine to assign a collector after publication. & $<$2 seconds \\
+
+Successful Pickup Rate & Percentage of confirmed assignments that result in completed pickups. & $\geq$85\% \\
+
+Notification Delivery Time & Time required to deliver push notifications to candidate users. & $<$5 seconds \\
+
+System Response Time & Average backend API response time during normal operation. & $<$500 ms \\
+
+Concurrent User Capacity & Maximum number of simultaneous active users supported without performance degradation. & $\geq$200 users \\
+\bottomrule
+\end{tabular}
+
+\end{table*}
+
+\end{document}
