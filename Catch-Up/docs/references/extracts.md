@@ -1,161 +1,209 @@
-# Abstracción de Puntos Clave
+# Key Points Abstraction
 
-**Food Waste Reduction Platform**
-**Autor:** Nicolás Rodríguez
-
----
-
-## 1. Problema y Contexto
-
-El proyecto aborda el alto nivel de desperdicio de alimentos en Colombia, especialmente en entornos urbanos donde cafeterías y restaurantes generan excedentes diarios. La falta de coordinación y el corto tiempo de vida útil de los alimentos dificultan su redistribución eficiente.
-
-La solución propuesta consiste en una plataforma digital que conecta oferentes (restaurantes y cafeterías) con demandantes (estudiantes, comunidad y fundaciones), facilitando la redistribución en tiempo real.
+**Food Waste Reduction Platform**  
+**Author:** Nicolás Rodríguez  
 
 ---
 
-## 2. Definición del Sistema
+## 1. Problem and Context
 
-El sistema es una aplicación móvil orientada a la redistribución de excedentes alimentarios bajo las siguientes condiciones:
+The project addresses the high level of food waste in Colombia, especially in urban environments where cafeterias and restaurants generate daily surpluses. The lack of coordination and the short shelf life of food make efficient redistribution difficult.
 
-* Radio geográfico limitado a 3 km
-* Operación en tiempo real
-* Ventanas temporales estrictas (mismo día)
-* Coordinación digital (sin transporte ni pagos)
+The proposed solution consists of a **digital platform** that connects suppliers (restaurants and cafeterias) with demand-side users (students, community members, and foundations), facilitating real-time redistribution.
 
 ---
 
-## 3. Componentes Principales
+## 2. System Definition
 
-El sistema se estructura en tres componentes clave:
+The system is a mobile application aimed at redistributing food surpluses under the following conditions:
 
-* **Frontend:** Aplicación móvil para interacción de usuarios
-* **Backend:** Gestión de lógica del sistema y datos
-* **Motor de Matching:** Algoritmo de asignación basado en proximidad, prioridad y disponibilidad
+* Geographic radius limited to 3 km  
+* Real-time operation  
+* Strict time windows (same day)  
+* Digital coordination (no transportation or payments)  
 
 ---
 
-## 4. Modelo Funcional (IPO)
+## 3. Main Components
 
-### Entradas
+The system is structured into three key components:
 
-* Información del excedente (tipo, cantidad, expiración)
-* Datos de geolocalización
-* Perfiles y preferencias de usuarios
+* **Frontend:** Mobile application for user interaction  
+* **Backend:** System logic and data management  
+* **Matching Engine:** Assignment algorithm based on proximity, priority, and availability  
 
-### Procesos
+---
 
-* Publicación de excedentes
-* Matching automático
-* Notificación y aceptación
-* Seguimiento y confirmación
+## 4. Functional Model (IPO)
 
-### Salidas
+### Inputs
 
-* Redistribución efectiva de alimentos
-* Métricas de impacto (kg recuperados, tasas de éxito)
+* Surplus information (type, quantity, expiration)  
+* Geolocation data  
+* User profiles and preferences  
+
+### Processes
+
+* Surplus publishing  
+* Automatic matching  
+* Notification and acceptance  
+* Tracking and confirmation  
+
+### Outputs
+
+* Effective food redistribution  
+* Impact metrics (kg recovered, success rates)  
 
 ---
 
 ## 5. Stakeholders
 
-* **Usuarios:** estudiantes, comunidad, fundaciones
-* **Proveedores:** restaurantes y cafeterías
-* **Administradores:** gestión y monitoreo del sistema
-* **Actores externos:** instituciones, autoridades, infraestructura tecnológica
+* **Users:** students, community, foundations  
+* **Suppliers:** restaurants and cafeterias  
+* **Administrators:** system management and monitoring  
+* **External actors:** institutions, authorities, technological infrastructure  
 
 ---
 
-## 6. Hallazgos Clave (Workshop 1)
+## 6. Key Findings (Workshop 1)
 
-* Alta dependencia de la geolocalización
-* Sensibilidad a usuarios que no recogen (no-shows)
-* Problemas de concurrencia en horas pico
-* Riesgo de inequidad por proximidad
-* Comportamientos emergentes (coordinación externa)
-
----
-
-## 7. Requisitos de Diseño (Workshop 2)
-
-* Matching en menos de 2 segundos
-* Recuperación ≥ 80% del excedente
-* Tasa de recogida ≥ 85%
-* Notificaciones en menos de 5 segundos
-* Soporte para múltiples usuarios concurrentes
+* High dependency on geolocation  
+* Sensitivity to users who do not pick up (no-shows)  
+* Concurrency issues during peak hours  
+* Risk of inequity due to proximity  
+* Emergent behaviors (external coordination)  
 
 ---
 
-## 8. Arquitectura del Sistema
+## 7. Design Requirements (Workshop 2)
 
-* **Frontend:** React Native
-* **Backend:** NestJS
-* **Base de datos:** PostgreSQL + PostGIS
-* **Caché y concurrencia:** Redis
-
-Arquitectura modular con separación de responsabilidades y soporte para procesamiento en tiempo real.
-
----
-
-## 9. Estrategia de Implementación
-
-El desarrollo se divide en tres fases:
-
-1. Infraestructura básica
-2. Motor de matching y coordinación
-3. Analítica, monitoreo y validación
+* Matching in less than 2 seconds  
+* Recovery ≥ 80% of surplus  
+* Pickup rate ≥ 85%  
+* Notifications in less than 5 seconds  
+* Support for multiple concurrent users  
 
 ---
 
-## 10. Gestión de Riesgos
+## 8. System Architecture
 
-### Sensibilidades críticas
+* **Frontend:** React Native  
+* **Backend:** NestJS  
+* **Database:** PostgreSQL + PostGIS  
+* **Cache and concurrency:** Redis  
 
-* Alta demanda simultánea
-* Fallas en geolocalización
-
-### Comportamientos emergentes
-
-* Redes externas de usuarios
-* Deserción de proveedores
-
-### Dinámicas caóticas
-
-* Cascadas por no-shows
-* Saturación por notificaciones
-
-**Soluciones:**
-
-* Notificaciones escalonadas
-* Reasignación automática
-* Sistema de reputación
+Modular architecture with separation of responsibilities and support for real-time processing.
 
 ---
 
-## 11. Monitoreo y KPIs
+## 9. Implementation Strategy
 
-* Tasa de recuperación de alimentos
-* Tiempo de respuesta del sistema
-* Tasa de recogida exitosa
-* Capacidad de concurrencia
+Development is divided into three phases:
+
+1. Basic infrastructure  
+2. Matching engine and coordination  
+3. Analytics, monitoring, and validation  
+
+---
+
+## 10. Risk Management
+
+### Critical sensitivities
+
+* High simultaneous demand  
+* Geolocation failures  
+
+### Emergent behaviors
+
+* External user networks  
+* Supplier dropout  
+
+### Chaotic dynamics
+
+* Cascades due to no-shows  
+* Notification saturation  
+
+**Solutions:**
+
+* Tiered notifications  
+* Automatic reassignment  
+* Reputation system  
 
 ---
 
-## 12. Conclusión
+## 11. Monitoring and KPIs
 
-La plataforma integra análisis y diseño para ofrecer una solución tecnológica viable al desperdicio de alimentos. Mediante el uso de geolocalización, algoritmos de asignación y monitoreo en tiempo real, se logra mejorar la eficiencia de redistribución y generar impacto social y ambiental positivo.
+* Food recovery rate  
+* System response time  
+* Successful pickup rate  
+* Concurrency capacity  
 
 ---
-# Abstracción de Puntos Clave
+
+## 12. Conclusion
+
+The platform integrates analysis and design to offer a viable technological solution to food waste. Through the use of geolocation, assignment algorithms, and real-time monitoring, it improves redistribution efficiency and generates positive social and environmental impact.
+
+---
+# Key Points Abstraction
 
 **Food Waste Reduction Platform**
-**Autor:** Cristian Bonilla
 
-## 13. Hallazgos Interesantes (Workshop 1 y 2)
+**Author:** Cristian Bonilla
 
-* **Exclusión de logística de transporte:** Es fundamental tener en cuenta que el sistema NO controlará ni gestionará la transportación de los alimentos. La responsabilidad y logística de recogida recae completamente en los usuarios.
-* **Ventana operativa crítica (8am - 5pm):** Se puede ver que la plataforma tendrá su pico de funcionamiento y operación en el horario de 8am - 5pm, momento de alta concurrencia en el cual el sistema debe garantizar máxima disponibilidad, estabilidad y rendimiento.
-* **Implementación de un Feedback Loop:** En el Workshop 1 surge la necesidad de diseñar un mecanismo de retroalimentación continua para iterar y mejorar el sistema con base en la experiencia de los usuarios. Queda abierta la pregunta de cómo recolectar este feedback de forma efectiva y sin generar fricción para poder utilizarlo en el diseño y mejora del sistema.
-* **Riesgo de cuellos de botella por concurrencia:** Existe la preocupación sobre el manejo de cientos de peticiones o "uploads" simultáneos que podrían saturar el sistema y dejar a los usuarios sin respuesta. Requiere estrategias de mitigación claras (ej. colas de mensajes).
-* **Propuesta de Arquitectura BFF (Backend for Frontend):** El BFF se plantea como una solución arquitectónica muy interesante y adecuada para adaptar, orquestar y optimizar eficientemente las respuestas del servidor hacia las necesidades específicas de la interfaz móvil.
-* **Entorno de ejecución 100% local:** Se definió que la infraestructura será "all local"; es decir, toda la aplicación, bases de datos y servicios se ejecutarán netamente en entornos locales para las pruebas. Por ahora, no se realizará ningún despliegue a producción o a la nube.
+## 13. Interesting Findings (Workshop 1 and 2)
 
+* **Exclusion of transportation logistics:** It is essential to note that the system will NOT control or manage food transportation. Responsibility and pickup logistics fall entirely on the users.  
+* **Critical operating window (8am - 5pm):** The platform will reach its peak operation between 8am and 5pm, a period of high concurrency where the system must ensure maximum availability, stability, and performance.  
+* **Implementation of a Feedback Loop:** Workshop 1 highlights the need to design a continuous feedback mechanism to iterate and improve the system based on user experience. The question remains open on how to collect this feedback effectively without introducing friction, so it can be used for system design and improvement.  
+* **Risk of bottlenecks due to concurrency:** There is concern about handling hundreds of simultaneous requests or "uploads" that could saturate the system and leave users without response. This requires clear mitigation strategies (e.g., message queues).  
+* **BFF Architecture Proposal (Backend for Frontend):** The BFF is proposed as a highly interesting and suitable architectural solution to adapt, orchestrate, and efficiently optimize server responses to the specific needs of the mobile interface.  
+* **100% local execution environment:** It was defined that the infrastructure will be "all local"; that is, the entire application, databases, and services will run strictly in local environments for testing. For now, there will be no deployment to production or the cloud.  
+
+---
+
+# Key Points Abstraction
+
+**Food Waste Reduction Platform**  
+**Author:** Luna Alejandra Sandoval Rodríguez  
+**Date:** March 23, 2026  
+
+## 14. Decomposition into 4 Subsystems (Workshop 1)
+- User Interaction System (registration, mobile, notifications)  
+- Surplus Management System (publishing, geolocation, DB)  
+- Assignment and Coordination System (matching, assignment, tracking)  
+- Monitoring and Analysis System (logs, dashboard, metrics)  
+
+## 15. Table of 17 Exact Measurable Requirements (Workshop 2)
+- **REQ-01:** 3 km radius with ±50 m accuracy (100% enforcement)  
+- **REQ-03:** ≥90% of offers ≥10 kg go first to charities  
+- **REQ-06:** 15 min timeout + automatic reassignment  
+- **REQ-09:** ≥200 concurrent users without degradation  
+- **REQ-11:** Peripheral users (2.5–3 km) receive ≥15% of matches  
+- **REQ-13:** Matching decision <2 seconds (95%)  
+- **REQ-17:** User with >3 no-shows in 7 days → 48 h restriction  
+
+## 16. Specific Risk Mitigations (Workshop 2)
+- Tiered notifications by distance (500 m → 1 km → 3 km)  
+- User reliability score (100 initial points –20 per no-show)  
+- Equity index on dashboard to detect geographic bias  
+- Automatic alerts if unclaimed_rate >20% for 3 days  
+- Maximum of 3 reassignments per surplus  
+
+## 17. Defined Interfaces and Data Flows (Workshop 2)
+- User Management API (HTTPS + JWT)  
+- Surplus Registration → Geo Service → Matching Engine  
+- Notification Service (Expo Push + FCM)  
+- Closure & Verification (QR or photo)  
+- WebSocket for real-time tracking  
+
+## 18. 6-Week Implementation Phases (Workshop 2)
+- **Phase 1 (weeks 1-2):** Auth + Surplus CRUD + Docker  
+- **Phase 2 (weeks 3-4):** Serialized matching + tiered notifications + WebSocket  
+- **Phase 3 (weeks 5-6):** Dashboard + KPIs + user reliability + local validation  
+
+## 19. Feedback Loop and Continuous Improvement Metrics (Workshop 2)
+- Weekly metric review by admin  
+- Algorithm tuning based on fairness and equity index  
+- User behavior analysis (repeated no-shows)  
+- Optimization based on peak load patterns  
