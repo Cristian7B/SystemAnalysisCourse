@@ -145,3 +145,17 @@ El desarrollo se divide en tres fases:
 La plataforma integra análisis y diseño para ofrecer una solución tecnológica viable al desperdicio de alimentos. Mediante el uso de geolocalización, algoritmos de asignación y monitoreo en tiempo real, se logra mejorar la eficiencia de redistribución y generar impacto social y ambiental positivo.
 
 ---
+# Abstracción de Puntos Clave
+
+**Food Waste Reduction Platform**
+**Autor:** Cristian Bonilla
+
+## 13. Hallazgos Interesantes (Workshop 1 y 2)
+
+* **Exclusión de logística de transporte:** Es fundamental tener en cuenta que el sistema NO controlará ni gestionará la transportación de los alimentos. La responsabilidad y logística de recogida recae completamente en los usuarios.
+* **Ventana operativa crítica (8am - 5pm):** Se puede ver que la plataforma tendrá su pico de funcionamiento y operación en el horario de 8am - 5pm, momento de alta concurrencia en el cual el sistema debe garantizar máxima disponibilidad, estabilidad y rendimiento.
+* **Implementación de un Feedback Loop:** En el Workshop 1 surge la necesidad de diseñar un mecanismo de retroalimentación continua para iterar y mejorar el sistema con base en la experiencia de los usuarios. Queda abierta la pregunta de cómo recolectar este feedback de forma efectiva y sin generar fricción para poder utilizarlo en el diseño y mejora del sistema.
+* **Riesgo de cuellos de botella por concurrencia:** Existe la preocupación sobre el manejo de cientos de peticiones o "uploads" simultáneos que podrían saturar el sistema y dejar a los usuarios sin respuesta. Requiere estrategias de mitigación claras (ej. colas de mensajes).
+* **Propuesta de Arquitectura BFF (Backend for Frontend):** El BFF se plantea como una solución arquitectónica muy interesante y adecuada para adaptar, orquestar y optimizar eficientemente las respuestas del servidor hacia las necesidades específicas de la interfaz móvil.
+* **Entorno de ejecución 100% local:** Se definió que la infraestructura será "all local"; es decir, toda la aplicación, bases de datos y servicios se ejecutarán netamente en entornos locales para las pruebas. Por ahora, no se realizará ningún despliegue a producción o a la nube.
+
