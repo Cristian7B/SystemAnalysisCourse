@@ -1,7 +1,7 @@
-# Key Findings Traceability Matrix for Catch-Up Deliverables
+# Key Findings Traceability for Catch-Up Deliverables
 
 **Food Waste Reduction Platform**  
-**Workshop 1 & 2 → Catch-Up (Paper, Poster, Report, Slides)**   
+**Workshop 1 y  2 → Catch-Up (Paper, Poster, Report, Slides)**   
 **Last updated:** March 23, 2026  
 **Responsible:** Luna Alejandra Sandoval Rodríguez (Project Lead)
 
