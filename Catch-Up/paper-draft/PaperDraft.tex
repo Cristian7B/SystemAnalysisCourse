@@ -32,14 +32,23 @@
 \maketitle
 
 \begin{abstract}
-In Colombia, tons of food are wasted annually. Amid a global food loss and waste crisis (which exacerbates environmental damage and food insecurity), this underscores the urgent need for collaborative digital platforms that reduce coordination barriers between donors and recipients. Therefore, this document proposes a mobile application that connects local cafes and restaurants with students, charities, and citizens in Bogotá through geolocation, real-time notifications, and priority rules for verified organizations. This aims to achieve quantifiable reductions in waste, greater social equity, and alignment with the principles of the circular economy.
+In Colombia, tons of food are wasted annually. Amid a global food loss and waste crisis (which exacerbates environmental damage and food insecurity), this underscores the urgent need for collaborative digital platforms that reduce coordination barriers between donors and recipients. Therefore, this document proposes a mobile application that connects local cafes and restaurants with students, charities, and citizens in Bogotá through geolocation, real-time notifications, and priority rules for verified organizations within a constrained geographic radius. This aims to achieve quantifiable reductions in waste, greater social equity, and alignment with the principles of the circular economy.
 \end{abstract}
 
 \begin{IEEEkeywords}
-Food Waste, Surplus Food Redistribution, Mobile Application, Geolocation
+Food waste reduction, real-time matching, geospatial systems, mobile applications, resource allocation, urban surplus redistribution, circular economy, system design, Colombia
 \end{IEEEkeywords}
 
 \section{Introduction}
+
+Food waste represents one of the greatest environmental, economic, and social challenges in Colombia. According to the Food Waste Index Report 2021 by the United Nations Environment Programme (UNEP), the country generates approximately 9.7 million tons of food lost or wasted annually, an amount sufficient to feed the entire population of Bogotá \cite{unep2021}. 
+
+In Bogotá, local cafeterias and restaurants produce significant quantities of daily surpluses suitable for human consumption, but the lack of rapid coordination and the short shelf life of food cause a large portion to end up in the trash. This situation exacerbates environmental damage (CO$_2$ equivalent emissions), food insecurity, and social inequality, especially in vulnerable communities and among students. In the university context, cafeterias and local restaurants near university areas generate surplus recurrently, but without an efficient digital mechanism that enables immediate redistribution.
+
+In 2024, the 'Alcaldía' of Bogotá launched the initiative ``Yo Contribuyo, No Desperdicio'', recognizing the importance of coordinating efforts among different entities to address the problem collectively \cite{bogota2024}. At the international level, platforms such as OLIO \cite{olio2024} and the Colombian startup EatCloud have demonstrated the potential of mobile applications to reduce waste\cite{eatcloud2025}; however, none are specifically designed for university environments with strict geographic constraints.
+
+This work proposes a mobile application for food waste reduction specifically designed for a spatial radius near the Faculty of Engineering of the Universidad Distrital Francisco José de Caldas. The platform connects local cafeterias and restaurants in real time with students, community members, and foundations through a matching algorithm based on proximity (maximum radius of 3\,km), priority for verified organizations, and tiered notifications. The system is strictly limited to an operational radius of 3\,km around the campus (Carrera 8 \#40-62), operates exclusively within the same day (publication 2-4 hours before closing and pickup within 1-3 hours), and focuses solely on digital coordination, leaving physical logistics and quality verification to the users. In this way, it aims to overcome the limitations identified in existing solutions and generate a measurable impact on waste reduction, social equity, and the principles of the circular economy.
+
 
 \section{Methods and Materials}
 
@@ -48,14 +57,10 @@ Food Waste, Surplus Food Redistribution, Mobile Application, Geolocation
 \section{Conclusion}
 
 \bibliographystyle{IEEEtran}
-\bibliography{references}
+\bibliography{references} 
 
-\begin{thebibliography}{10}
-\bibitem{---}
----
 
-\end{thebibliography}
-
-\section{Acknowledgments}
+\section*{Acknowledgments}
 
 \end{document}
+
