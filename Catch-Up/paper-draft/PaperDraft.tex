@@ -32,7 +32,7 @@ Universidad Distrital & Universidad Distrital \\
 \maketitle
 
 \begin{abstract}
-In Colombia, tons of food are wasted annually. Amid a global food loss and waste crisis that exacerbates environmental damage and food insecurity, this underscores the urgent need for collaborative digital platforms that reduce coordination barriers between donors and recipients. Therefore, this document proposes a mobile application that connects local cafes and restaurants with students, charities, and citizens in Bogotá through geolocation, real-time notifications, and priority rules for verified organizations within a constrained geographic radius. This aims to achieve quantifiable reductions in waste, greater social equity, and alignment with the principles of the circular economy.
+In Colombia, tons of food are wasted annually. Amid a global food loss and waste crisis (which exacerbates environmental damage and food insecurity), this underscores the urgent need for collaborative digital platforms that reduce coordination barriers between donors and recipients. Therefore, this document proposes a mobile application that connects local cafes and restaurants with students, charities, and citizens in Bogotá through geolocation, real-time notifications, and priority rules for verified organizations within a constrained geographic radius. This aims to achieve quantifiable reductions in waste, greater social equity, and alignment with the principles of the circular economy.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -47,6 +47,15 @@ In Bogotá, local cafeterias and restaurants produce significant quantities of d
 In 2024, the Alcaldía of Bogotá launched the initiative ``Yo Contribuyo, No Desperdicio'', recognizing the importance of coordinating efforts among different entities to address the problem collectively \cite{bogota2024}. At the international level, platforms such as OLIO \cite{olio2024} and the Colombian startup EatCloud have demonstrated the potential of mobile applications to reduce waste \cite{eatcloud2025}; however, none are specifically designed for university environments with strict geographic constraints.
 
 This work proposes a mobile application for food waste reduction specifically designed for a spatial radius near the Faculty of Engineering of the Universidad Distrital Francisco José de Caldas. The platform connects local cafeterias and restaurants in real time with students, community members, and foundations through a matching algorithm based on proximity (maximum radius of 3\,km), priority for verified organizations, and tiered notifications. The system is strictly limited to an operational radius of 3\,km around the campus (Carrera 8 \#40-62), operates exclusively within the same day (publication 2-4 hours before closing and pickup within 1-3 hours), and focuses solely on digital coordination, leaving physical logistics and quality verification to the users. In this way, it aims to overcome the limitations identified in existing solutions and generate a measurable impact on waste reduction, social equity, and the principles of the circular economy.
+
+Food waste represents one of the greatest environmental, economic, and social challenges in Colombia. According to the Food Waste Index Report 2021 by the United Nations Environment Programme (UNEP), the country generates approximately 9.7 million tons of food lost or wasted annually, an amount sufficient to feed the entire population of Bogotá \cite{unep2021}. 
+
+In Bogotá, local cafeterias and restaurants produce significant quantities of daily surpluses suitable for human consumption, but the lack of rapid coordination and the short shelf life of food cause a large portion to end up in the trash. This situation exacerbates environmental damage (CO$_2$ equivalent emissions), food insecurity, and social inequality, especially in vulnerable communities and among students. In the university context, cafeterias and local restaurants near university areas generate surplus recurrently, but without an efficient digital mechanism that enables immediate redistribution.
+
+In 2024, the 'Alcaldía' of Bogotá launched the initiative ``Yo Contribuyo, No Desperdicio'', recognizing the importance of coordinating efforts among different entities to address the problem collectively \cite{bogota2024}. At the international level, platforms such as OLIO \cite{olio2024} and the Colombian startup EatCloud have demonstrated the potential of mobile applications to reduce waste\cite{eatcloud2025}; however, none are specifically designed for university environments with strict geographic constraints.
+
+This work proposes a mobile application for food waste reduction specifically designed for a spatial radius near the Faculty of Engineering of the Universidad Distrital Francisco José de Caldas. The platform connects local cafeterias and restaurants in real time with students, community members, and foundations through a matching algorithm based on proximity (maximum radius of 3\,km), priority for verified organizations, and tiered notifications. The system is strictly limited to an operational radius of 3\,km around the campus (Carrera 8 \#40-62), operates exclusively within the same day (publication 2-4 hours before closing and pickup within 1-3 hours), and focuses solely on digital coordination, leaving physical logistics and quality verification to the users. In this way, it aims to overcome the limitations identified in existing solutions and generate a measurable impact on waste reduction, social equity, and the principles of the circular economy.
+
 
 \section{Methods and Materials}
 \subsection{System Architecture}
@@ -121,118 +130,55 @@ System effectiveness will be assessed through an eight-week pilot deployment wit
 Figure~\ref{fig:architecture} presents the proposed system architecture.
 
 
+\subsection{System Architecture}
+
+The proposed platform follows a four-layer architecture designed to separate concerns and support real-time coordination between donors and recipients. Figure~\ref{fig:architecture} illustrates the full system design.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{System-Architecture-Change (1)}
+  \caption{System architecture of the proposed food surplus redistribution platform.}
+  \label{fig:architecture}
+\end
+
+The \textbf{External Actors} layer comprises two principal user groups: restaurants and cafeterias, which register surplus inventory as donors, and volunteers and beneficiaries, which include verified NGOs, student groups, and individual citizens who claim available donations.
+
+The \textbf{Application Layer} hosts the Mobile Application and the User Management Interface, serving as the single point of interaction for all user types. It handles authentication, role assignment (donor, verified organization, or general beneficiary), and geographic eligibility verification.
+
+The \textbf{Service Layer} is the core processing tier, composed of four components: the Surplus Registration Service validates and persists new food listings; the Geolocation Service enforces the 3\,km operational radius; the Matching Algorithm applies a priority queue favoring verified charitable organizations; and the Assignment Coordination module manages reservation states and expiry windows. A Notification Service dispatches tiered push alerts across all components.
+
+The \textbf{Data Layer} consists of a centralized relational database that persists user profiles, food listings, geolocation records, assignment states, and transaction histories. The \textbf{Analytics Layer} extends from this database through an Activity Logging module, a Metrics Generation engine, and an Administrative Dashboard, enabling continuous impact reporting and system optimization.
+
+\subsection{Matching and Priority Algorithm}
+
+The core matching logic operates as a priority queue evaluated each time a new surplus listing is published. When a donor submits a listing, the algorithm: (1)~identifies all registered recipients within a 3\,km radius via the Geolocation Service; (2)~sorts them by a composite priority score that weights organizational verification status (verified NGO $>$ student group $>$ general user), historical pickup reliability, and geographic proximity; (3)~dispatches push notifications sequentially per tier with a 15-minute response window before cascading to the next level; and (4)~locks the listing upon pickup confirmation, removing it from the active pool.
+
+\subsection{Operational Constraints}
+
+The platform enforces strict boundaries to ensure food safety and logistical feasibility: (i)~listings must be published 2--4 hours before the donor's closing time; (ii)~pickups must be completed within 1--3 hours of publication; (iii)~listings expire automatically at midnight; and (iv)~the platform does not manage physical transport or quality certification, placing that responsibility on participating parties.
+
+\subsection{Technology Stack}
+
+The mobile application is developed using React Native for cross-platform support on Android and iOS, which is relevant given the Android-dominant market in Colombia. Backend services are implemented with Node.js exposing RESTful APIs. PostgreSQL with the PostGIS extension supports geospatial radius queries. Firebase Cloud Messaging (FCM) powers the real-time push notification pipeline. The stack is containerized with Docker and deployed on a cloud provider to ensure availability during peak usage windows.
+
+\subsection{Evaluation Methodology}
+
+System effectiveness will be assessed through an eight-week pilot deployment within the operational radius. Quantitative metrics include: total kilograms of food redistributed, number of successful donor--recipient matches per week, average time from listing publication to pickup confirmation, and notification response rates per priority tier. User experience will be measured via a post-pilot survey using a 5-point Likert scale covering usability, notification timeliness, and perceived social impact. Waste reduction estimates will be derived by multiplying successfully claimed listings by the average portion weight recorded at registration.
+
+\subsection{System Architecture}
+
+Figure~\ref{fig:architecture} presents the proposed system architecture.
+
+
 \section{Results and Discussion}
 \textbf{\textbf{The results presented in this section are based on a realistic projections constructed from the system parameters and boundaries defined in the Workshop 1 systems analysis. These represent the expected performance of the platform and will be validated through actual experiments, pilot deployment, and user testing in subsequent workshops (Workshop 3 and 4).}}
 
 To evaluate the potential impact of the proposed platform, a simulated pilot scenario was constructed based on typical food surplus generation patterns observed in small urban restaurants and university cafeterias located near the Engineering Faculty of the Universidad Distrital Francisco José de Caldas. The evaluation considered three key performance indicators: surplus food recovery rate, number of successful redistributions, and estimated reduction in food waste.
 
-The simulation assumed the participation of 20 food suppliers (cafeterias and restaurants) within a 3 km radius and an active user base of 300 potential receivers, including students, citizens, and verified charitable organizations. Each supplier was assumed to generate between 3 and 8 kg of surplus food daily, depending on the size and activity level of the establishment.
-
-\subsection{Estimated Redistribution Capacity}
-Table~\ref{tab:redistribution} presents the estimated redistribution capacity of the platform under three different adoption scenarios.
-
-\begin{table}[H]
-\centering
-\caption{Estimated Redistribution Capacity under Different Adoption Scenarios}
-\label{tab:redistribution}
-\resizebox{\columnwidth}{!}{
-\begin{tabular}{lcccc}
-\toprule
-Scenario & Suppliers & Daily Surplus (kg) & Redistributed (kg/day) & Waste Reduction (\%) \\
-\midrule
-Low adoption  & 10 & 45  & 30  & 66 \\
-Medium adoption & 20 & 95  & 70  & 73 \\
-High adoption   & 40 & 180 & 145 & 80 \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
-These estimates suggest that even with moderate participation, the platform could redistribute approximately 70 kg of food per day, equivalent to more than 2 metric tons per month. Over a one-year period, this could translate into the recovery of approximately 25--30 tons of edible food within the operational radius of the system.
-
-\subsection{Distribution Efficiency}
-The efficiency of the redistribution process depends primarily on the proximity-based matching algorithm and the tiered notification priority. The simulation demonstrates consistent performance across all adoption scenarios, with higher participation levels yielding proportionally greater recovery rates due to the effective design of the priority queue.
-
-\subsection{Environmental Impact Estimation}
-Food waste contributes significantly to greenhouse gas emissions due to methane production in landfills. According to environmental conversion estimates, 1 kg of wasted food produces approximately 2.5 kg of CO$_2$-equivalent emissions.
-
-\begin{table}[h]
-\centering
-\caption{Estimated Emissions Avoided}
-\label{tab:emissions}
-\begin{tabular}{lcc}
-\toprule
-Period  & Food Recovered & CO$_2$ Emissions Avoided \\
-\midrule
-Daily   & 70 kg   & 175 kg CO$_2$e \\
-Monthly & 2,100 kg & 5,250 kg CO$_2$e \\
-Yearly  & 25,550 kg & 63,875 kg CO$_2$e \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\subsection{Simulated System Usage Trend}
-The projected adoption curve suggests gradual growth as awareness increases among local businesses and students.
-
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-ybar,
-symbolic x coords={Month1,Month3,Month6,Month9,Month12},
-xtick=data,
-ylabel={Active Users},
-xlabel={Time Period},
-width=0.9\linewidth,
-height=6cm
-]
-\addplot coordinates {(Month1,50) (Month3,100) (Month6,160) (Month9,230) (Month12,300)};
-\end{axis}
-\end{tikzpicture}
-\caption{Projected growth in platform users during the first year.}
-\label{fig:usergrowth}
-\end{figure}
-
-Similarly, the quantity of redistributed food increases proportionally as more suppliers join the system.
-
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}
-\begin{axis}[
-ybar,
-symbolic x coords={Low,Medium,High},
-xtick=data,
-ylabel={Redistributed Food (kg/day)},
-xlabel={Adoption Scenario},
-width=0.9\linewidth,
-height=6cm
-]
-\addplot coordinates {(Low,30) (Medium,70) (High,145)};
-\end{axis}
-\end{tikzpicture}
-\caption{Estimated increase in redistributed food across adoption scenarios.}
-\label{fig:fooddist}
-\end{figure}
-
-\subsection{Discussion}
-The results indicate that a geographically constrained redistribution platform can generate measurable environmental and social benefits. The main strength of the proposed system lies in rapid digital coordination rather than complex logistics, allowing food that would otherwise expire within hours to reach nearby recipients quickly.
-
-Compared to broader food redistribution platforms, the strict 3 km operational radius improves pickup feasibility and reduces transportation barriers. Additionally, prioritizing verified organizations increases the likelihood that larger quantities of surplus food are distributed efficiently to those who need it most.
-
-However, several limitations must be considered. The estimates rely on simulated participation levels and assume consistent engagement from both suppliers and recipients. In practice, user behavior, notification response time, and food safety concerns may influence the actual redistribution rate. Despite these uncertainties, the projected recovery levels suggest that even a small-scale university-focused system can contribute meaningfully to reducing food waste, lowering emissions, and improving access to food within the surrounding community.
-
-\section{Conclusions}
-The proposed Food Waste Reduction Platform demonstrates that a geographically constrained, mobile-based system can effectively address the critical challenge of daily surplus food in university cafeterias and nearby restaurants in Bogotá. By integrating real-time geolocation, a priority-based matching algorithm, and strict operational boundaries, the platform enables rapid digital coordination that transforms potential waste into accessible resources for students, community members, and verified charitable organizations, thereby advancing social equity and circular economy principles.
-
-Simulation results project that moderate adoption could recover approximately 70 kg of edible food per day (25--30 tons annually) within the 3 km radius around the Engineering Faculty of Universidad Distrital Francisco José de Caldas, while avoiding substantial CO$_2$-equivalent emissions. These outcomes validate the design decisions taken during the systems analysis and confirm the system’s potential to generate measurable local impact.
-
-Future work will focus on full prototype implementation in Workshop 4, real-world pilot testing with actual users, integration of user feedback for iterative refinement, and enhancement of the matching algorithm with machine learning techniques for better preference alignment. Additional research directions include behavioral studies on donor and recipient engagement as well as responsible scaling to other university campuses while preserving food safety and logistical feasibility.
-
-
 \bibliographystyle{IEEEtran}
-\bibliography{references}
+\bibliography{references} 
+
 
 \section*{Acknowledgments}
-This work was developed as part of the Systems Analysis and Design course at Universidad Distrital Francisco José de Caldas.
 
 \end{document}
