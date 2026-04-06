@@ -33,14 +33,8 @@ All design decisions ensure **≥80 % surplus recovery**, **matching < 2 s**, **
 ## Git Workflow & Collaboration (TeamWork_CS best practices)
 
 - **Branches**: `feature/matching-engine`, `feature/notifications`, `docs/requirements-update`, `phase/1-core-infra`
-- **Commits**: Atómicos + descriptivos (ejemplo: `feat: implement serialized Bull queue for REQ-09`)
-- **Pull Requests**: Revisión por pares obligatoria
 
 ---
 
 **Last updated**: March 20, 2026  
-**Status**: Design complete ✓ | Phase 1 development started  
-
-**Questions?** Abre un issue o menciona @luna-sandoval en el repo.
-
-
+**Status**: Design complete ✓ 
