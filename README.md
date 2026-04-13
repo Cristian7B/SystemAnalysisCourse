@@ -16,17 +16,17 @@ The platform enables real-time surplus food redistribution with mandatory same-d
 ## 📁 Main Folders
 
 ### Workshop 1 – Systems Analysis (Completed)
-**Folder**: [`./Workshop_1`](./Workshop_1)
+**Folder**: [`./Workshop_1`](./Workshop_1_Analysis)
   Comprehensive analysis of the Food Waste Redistribution Platform through primary data collection and systematic investigation. Includes system identification, element analysis, relationship mapping, sensitivity analysis, and complexity theory aspects.
   **Key deliverables**: System overview, spatial/temporal boundaries, component table, and full risk identification.
 
 ### Workshop 2 – Systems Design (Completed)
-**Folder**: [`./Workshop_2`](./Workshop_2) 
+**Folder**: [`./Workshop_2`](./Workshop_2_Design) 
   Detailed system architecture for the Food Waste Redistribution Platform, addressing challenges and opportunities identified in Workshop 1. Covers component design, priority-based access logic, and geospatial query specifications.
   **Key deliverables**: System architecture diagram, algorithm description, interface definitions, and traceability matrix to Workshop 1 requirements.
 
 ### Workshop 3 – Robust System Design and Project Management (**In Progress**)
-**Folder**: [`./Workshop_3`](./Workshop_3)
+**Folder**: [`./Workshop_3`](./Workshop_3_Management)
   Enhancement of the system design through robust engineering principles and comprehensive project management planning. Includes risk mitigation, quality assurance strategies, and iterative development planning.
   **Current status**: In development – Delivery: **25 April 2026**  
   **Key deliverables in progress**: Risk matrix, quality metrics, Gantt chart, enhanced architecture diagrams, and complete Project Management Plan.
