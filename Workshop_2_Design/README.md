@@ -1,40 +1,40 @@
-# Workshop 2 — Systems Design  
+# Workshop 2 – Systems Design
+
 **Food Waste Reduction Platform**  
-**Semester 2026-I** | Universidad Distrital Francisco José de Caldas  
+*Real-Time Surplus Redistribution Mobile Application*
 
-**Team**  
-- Luna Alejandra Sandoval Rodríguez (20241020053) — Systems Analyst / Project Lead  
-- Cristian Camilo Bonilla Lizarazo (20241020015) — Systems Analyst / Frontend Developer  
-- Nicolás Rodríguez Granados (2024102037) — Systems Analyst / Backend Developer  
-- Juan Sebastián Bravo Rojas (20241020004) — Systems Analyst / Database Specialist  
+## Overview
+Detailed technical design of the mobile platform as a direct continuation of Workshop 1. Defines the complete system architecture, algorithms, technology stack, and implementation roadmap for the Food Waste Reduction Platform.
 
----
+## Workshop Objectives
+- Deliver high-level architecture with component responsibilities
+- Define 17 traceable, measurable design requirements (REQ-01 to REQ-17)
+- Specify priority-based matching algorithm, geospatial logic, and notification system
+- Provide three-phase implementation roadmap (6 weeks per phase)
+- Mitigate the 10 critical risks identified in Workshop 1
 
-## Workshop Objectives (aligned with course guidelines)
-This workshop delivers the **complete technical design** of the mobile Food Waste Reduction Platform as a direct continuation of Workshop 1.  
-Key deliverables:
-- High-level architecture + component responsibilities  
-- 17 traceable, measurable design requirements (REQ-01 to REQ-17)  
-- Technology stack, data flows, interfaces, and external services  
-- Three-phase implementation roadmap (6 weeks)  
-- Risk/complexity mitigation table for the 10 critical sensitivities identified in Workshop 1  
-- KPIs, monitoring strategy, and success criteria  
-- Local deployment blueprint (Docker Compose)  
+## Team
+- **Luna Alejandra Sandoval Rodríguez** (20241020053) – Systems Analyst / Project Lead  
+- **Cristian Camilo Bonilla Lizarazo** (20241020015) – Systems Analyst / Frontend Developer  
+- **Nicolás Rodríguez Granados** (20241020037) – Systems Analyst / Backend Developer  
+- **Juan Sebastián Bravo Rojas** (20241020004) – Systems Analyst / Database Specialist  
 
-All design decisions ensure **≥80 % surplus recovery**, **matching < 2 s**, **pickup ≥85 %**, and strict enforcement of the 3 km radius + same-day freshness window.
+## Key Deliverables
+- Four-layer system architecture (External Actors, Application, Service, Data & Analytics)
+- Priority-queue matching algorithm with geolocation (PostGIS)
+- Technology stack and deployment blueprint (Docker)
+- Risk mitigation table and success KPIs (≥80 % recovery, <2 s matching, ≥85 % pickup)
 
----
+## Status
+✅ **Completed** – Delivered March 2026
 
-## Diagrams:
-- [High-level architecture](https://github.com/Cristian7B/SystemAnalysisCourse/tree/main/Workshop_2/diagrams/architecture-high-level.png)  
-- [Detailed data flows](https://github.com/Cristian7B/SystemAnalysisCourse/tree/main/Workshop_2/diagrams/data-flows/)
+## Diagrams & Artifacts
+- High-level architecture diagram
+- Detailed data flows and interface specifications
+- Git workflow (branches: `feature/matching-engine`, `feature/notifications`, etc.)
 
----
-## Git Workflow & Collaboration (TeamWork_CS best practices)
-
-- **Branches**: `feature/matching-engine`, `feature/notifications`, `docs/requirements-update`, `phase/1-core-infra`
-
----
+## Related Files
+- [`Workshop_2.pdf`](./Workshop_2.pdf) – Full Systems Design Document
 
 **Last updated**: March 20, 2026  
-**Status**: Design complete ✓ 
+**Academic Context**: Systems Analysis & Design Course – Universidad Distrital Francisco José de Caldas, 2026-I
