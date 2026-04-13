@@ -62,4 +62,4 @@ Reduce food waste while maximizing social impact by redistributing surplus food,
 Developed for the **Systems Analysis course** at **Universidad Distrital Francisco José de Caldas**, applying concepts of system analysis, software architecture, web development, and geospatial systems.
 
 ## Related Files
-- `Workshop_1.pdf`: Full report detailing the activity that was carried out.
+- `./Workshop_1.pdf`: Full report detailing the activity that was carried out.
