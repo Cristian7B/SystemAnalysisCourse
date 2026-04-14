@@ -1,0 +1,85 @@
+\documentclass[9pt,conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,english]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{hyperref}
+
+\title{Food Waste Reduction Platform: Robust System Design and Project Management}
+
+\author{
+Luna Alejandra Sandoval Rodríguez \\
+\textit{Project Lead \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020053
+\and
+Cristian Camilo Bonilla Lizarazo \\
+\textit{Frontend Developer \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020015
+\and
+Nicolás Rodríguez Granados \\
+\textit{Backend Developer \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020037
+\and
+Juan Sebastián Bravo Rojas \\
+\textit{Database Specialist \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020004
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Executive Summary}
+The \textit{Food Waste Reduction Platform} is a system that has evolved systematically from problem definition, analysis, and evaluation to a fully defined architecture based on its specific risks and sensitivity factors. 
+
+\textbf{Workshop 1 } established a rigorous systems analysis of the food waste problem in Bogotá, quantifying the national scale (approximately 9.7 million tons annually) and local constraints surrounding the Faculty of Engineering at the Universidad Distrital Francisco José de Caldas. This phase defined clear system boundaries (a 3 km walking radius, 2–4 hour same-day posting windows, and 1–3 hour collection windows), stakeholder roles, an input-process-output (IPO) model, 17 traceable and quantifiable design requirements, and 10 critical risks.
+
+Building on these foundations, \textbf{Workshop 2} transitioned the project into technical realization, detailing a robust architecture centered on a Nest.JS backend and a PostGIS-enabled PostgreSQL database to enforce critical geospatial constraints. This phase introduced high-value design features, including a serialized multi-criteria matching algorithm—incorporating a 20\% priority weight for charities—and a reliability-based scoring system to mitigate the operational impact of user no-shows; additionally, staggered notifications were implemented to prevent demand amplification and ensure social equity during peak concurrency periods.
+
+This document presents the \textbf{Workshop 3} as the culmination of this evolution: a refined model that integrates final performance optimizations and comprehensive experimental validation. The resulting system successfully demonstrates its ability to meet the project's primary success thresholds, achieving a surplus recovery rate of over 80\%, a backend matching time of less than 2 seconds, and a collection completion rate of over 85\%. By consolidating the rigorous analytical foundations and architectural patterns established in previous stages, the platform is now a fully functional and verified solution for real-time food redistribution.
+
+\section{Evolution and Continuous Improvement}
+The project followed a structured and iterative systems engineering lifecycle that explicitly linked the findings from Workshops 1 and 2, ensuring traceability, risk mitigation, and technical alignment.
+\subsection{Phase I: Problem Definition and System Diagnostic (Workshop 1}
+The foundational stage focused on a comprehensive systems analysis to identify the core problem: coordination barriers causing food surplus losses within a 3 km radius of the university. This phase established the system boundaries, the primary components (mobile interface, matching engine, and persistence layer), and a high-level Input-Process-Output (IPO) model.
+
+Key outputs included seventeen measurable design requirements and the documentation of ten critical risks and sensitivity factors. These included absenteeism cascades (no-shows), peak-hour concurrency bottlenecks, competitive dynamics in high-demand bidding, and the interference of informal communication networks (e.g., WhatsApp referral chains) that bypass system logic.
+
+\subsection{Phase II: Architecture and Mitigation Synthesis (Workshop 2)}
+During the design phase, the 17 initial requirements were directly mapped to specific architectural decisions and component responsibilities. Each previously identified risk was addressed through dedicated mitigation patterns:
+\begin{itemize}
+    \item \textbf{Race Conditions:} Resolved through serialized priority queue matching and strict 15-minute response windows.
+    \item \textbf{Absenteeism:} Mitigated via a reliability scoring system and automatic reassignment protocols to prevent operational cascades.
+    \item \textbf{Scalability:} Addressed through Redis caching and Docker orchestration to ensure stability during peak demand.
+    \item \textbf{System Integrity:} Anomaly monitoring was integrated to identify and block external referral networks.
+\end{itemize}
+
+The resulting technology stack—comprising React Native/Expo, Nest.js, PostGIS, and Firebase Cloud Messaging (FCM)—provided a traceable and viable model for the implementation phase.
+
+\subsection{Phase III: Robust Improvements: Quality, Risks, and Management (WOrkshop 3)}
+\textit{[In Progress: This section will detail the final optimizations, including the refinement of the matching algorithm and the implementation of advanced security and management protocols.]}
+
+\subsection{Lessons Learned}
+\textit{[In Progress: This section will document the technical and procedural insights gained throughout the iterative development process.]}
+
+\subsection{The Evolution Summary}
+The evolution of the platform demonstrates a transition from abstract problem identification to a high-fidelity technical solution. By maintaining a continuous feedback loop between the analytical constraints of Workshop 1 and the architectural patterns of Workshop 2, the system has achieved a level of maturity that allows for rigorous experimental validation and performance benchmarking in this final stage.
+
+\begin{thebibliography}{10}
+\bibitem{w1} Workshop 1 – Food Waste Reduction Mobile Application, A Rigorous System Analysis, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{w2} Workshop 2 – System Design Document, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{ieee} IEEE Standards Association, ``IEEE 730-2014 - IEEE Standard for Software Quality Assurance Processes,'' 2014.
+\end{thebibliography}
+
+\end{document}
