@@ -1,0 +1,138 @@
+\documentclass[9pt,conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,english]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{threeparttable}
+
+\title{Food Waste Reduction Platform: Robust System Design and Project Management}
+
+\author{
+Luna Alejandra Sandoval Rodríguez \\
+\textit{Project Lead \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020053
+\and
+Cristian Camilo Bonilla Lizarazo \\
+\textit{Frontend Developer \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020015
+\and
+Nicolás Rodríguez Granados \\
+\textit{Backend Developer \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020037
+\and
+Juan Sebastián Bravo Rojas \\
+\textit{Database Specialist \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020004
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Project Management Documentation}
+
+\subsection{Project Charter}
+
+\textbf{Project Title:}
+
+Food Waste Reduction Platform: A Real-Time Geospatial Redistribution System.
+
+\textbf{Problem Statement and Justification:}
+
+Despite Colombia generating 9.7 million tons of food waste annually, local coordination gaps prevent the efficient redistribution of high-quality surplus within short freshness windows. This project bridges that gap by implementing a high-concurrency matching engine that prioritizes social equity and geographical proximity, directly supporting the circular economy objectives of the Bogotá university community.
+
+
+\subsubsection{SMART Objectives}
+\begin{itemize}
+    \item \textbf{Specific:} To engineer and validate a mobile ecosystem connecting donor nodes (cafeterias/restaurants) with recipient nodes (students/charities) within a strictly enforced 3 km radius of the Carrera 8 \#40-62 headquarters.
+    \item \textbf{Measurable:} To achieve a Surplus Recovery Rate (SRR) of $\ge 80\%$, a backend algorithmic latency of $< 2$ seconds, and a Verified Pickup Rate (VPR) of $\ge 85\%$ under simulated load.
+    \item \textbf{Achievable:} Leveraging the validated Workshop 2 stack: NestJS (logic), PostGIS (spatial), Redis (concurrency), and React Native (interface).
+    \item \textbf{Relevant:} Directly addresses the 17 design requirements and 10 critical risks identified in the Workshop 1 systems diagnostic.
+    \item \textbf{Time-bound:} Final system validation and performance benchmarking to be concluded by June 12, 2026.
+\end{itemize}
+
+\subsubsection{Comprehensive Team Structure and Accountability (RACI)}
+
+
+To ensure project success, the team operates under a RACI Matrix (Responsible, Accountable, Consulted, Informed), ensuring no ambiguity in deliverable ownership.
+
+See Table I: Accountability Framework (RACI)
+
+\begin{table}[h]
+\centering
+\small
+\begin{threeparttable}
+    \caption{Accountability Framework (RACI)}
+    \begin{tabularx}{\columnwidth}{@{} X cccc @{}}
+        \toprule
+        \textbf{Activity} & \textbf{Luna} & \textbf{Nico} & \textbf{Cris} & \textbf{Juan} \\ \midrule
+        Project Lead \& Integration & A/R & I & I & I \\
+        Backend \& Matching Engine  & I & A/R & C & C  \\ 
+        Frontend \& UX Design       & I & C & A/R & I \\ 
+        Quality Assurance (QA)      & R & R  & R  & R   \\
+        \bottomrule
+    \end{tabularx}
+    \begin{tablenotes}
+        \small
+        \item \textbf{Legend:} R: Responsible; A: Accountable; C: Consulted; I: Informed.
+    \end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\subsubsection{Project Timeline and Critical Path}
+
+The project follows a 16-week cycle divided into four major iterations. The Critical Path currently lies in the integration of the matching engine with real-time push notifications.
+\begin{itemize}
+    \item \textbf{M1: System Diagnostic (Weeks 1-4):} Problem definition, IPO modeling, and boundary setting. [COMPLETED]
+    \item \textbf{M2: Architectural Design (Weeks 5-8):} Component diagrams, technology stack selection, and risk mitigation planning. [COMPLETED]
+    \item \textbf{M3: Development \& Optimization (Weeks 9-12):} Sprint-based coding, PostGIS implementation, and reliability scoring logic. [IN PROGRESS]
+    \item \textbf{M4: Validation \& Final Report (Weeks 13-16):} Stress testing, experimental validation, and presentation of the "Best-in-Class" model.
+\end{itemize}
+
+\subsubsection{Resource Planning and Budgetary Considerations}
+
+As an academic initiative, the budget is calculated in Human-Hours (HH) and Cloud Resource Credits:
+\begin{itemize}
+    \item \textbf{Human Capital:} 4 Systems Engineers x 10 hours/week x 16 weeks = 640 total HH.
+    \item \textbf{Technological Assets:} Expo/React Native (Open Source), PostgreSQL/PostGIS (Open Source), and Firebase (Free Tier).
+    \item \textbf{Infrastructure Cost (Theoretical):} Estimated \$50 USD/month for production-grade hosting on AWS/Google Cloud for a pilot-scale deployment.
+\end{itemize}
+
+\subsubsection{Stakeholder Communication Strategy}To maintain alignment with both internal and external stakeholders, the following communication matrix is enforced:
+\begin{itemize}
+    \item \textbf{Technical Syncs (Internal):} Bi-weekly agile stand-ups to review GitHub issues and code reviews.
+    \item \textbf{Academic Oversight:} Monthly progress reports submitted via the course platform to Eng. Carlos Andrés Sierra.
+    \item \textbf{External Validation:} Semi-structured interviews with 3 local cafeteria managers to validate the "Same-day 2-4h window" feasibility.
+\end{itemize}
+
+\subsubsection{Scope and Constraints}
+\textbf{Functional Boundary:} The system is restricted to digital coordination. It does not manage cold-chain logistics, nor does it assume legal liability for food quality, which remains the donor's responsibility as per the system's "Terms of Use" architecture.
+\textbf{Assumptions:}
+\begin{enumerate}
+    \item Continuous availability of GPS services for both donor and recipient.
+    \item Stable internet connectivity within the 3 km university radius.
+    \item Users (students/collectors) possess smartphones compatible with the Expo Go environment.
+\end{enumerate}
+
+
+\begin{thebibliography}{10}
+\bibitem{w1} Workshop 1 – Food Waste Reduction Mobile Application, A Rigorous System Analysis, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{w2} Workshop 2 – System Design Document, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{ieee} IEEE Standards Association, ``IEEE 730-2014 - IEEE Standard for Software Quality Assurance Processes,'' 2014.
+\end{thebibliography}
+
+\end{document}
