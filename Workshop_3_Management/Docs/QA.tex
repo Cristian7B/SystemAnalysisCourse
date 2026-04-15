@@ -1,0 +1,82 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{tikz}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
+\usepackage{float}
+\
+
+\title{pruebas}
+\author{Nicolás Rodríguez Granados}
+\date{April 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introduction}
+\section{Quality Assurance Framework}
+
+The quality assurance framework for the Food Waste Reduction Platform is grounded in the seventeen measurable design requirements defined in Workshop~2 and directly informed by the sensitivity factors and emergent behaviors identified in Workshop~1. It establishes quantitative acceptance criteria, a structured testing strategy, and a continuous monitoring cycle to validate that the system meets its operational and social impact objectives.
+
+\subsection{Quality Metrics and Acceptance Criteria}
+
+Table~\ref{tab:qa_metrics} presents the complete set of quantitative quality metrics, their target values, and the Workshop~2 requirements they satisfy.
+
+\begin{table*}[h]
+\centering
+\caption{Quality Metrics, Acceptance Criteria, and Requirement Traceability}
+\label{tab:qa_metrics}
+\begin{tabular}{|p{2.8cm}|p{2cm}|p{2cm}|p{7cm}|p{1cm}|}
+\hline
+\textbf{Metric} & \textbf{Target} & \textbf{Min. Accept.} & \textbf{Rationale} & \textbf{REQ} \\
+\hline
+Surplus Recovery Rate & $\geq$80\% & 65\% & Ensures the majority of published food is redistributed before expiry. & REQ-02 \\
+\hline
+Avg. Matching Time & $<$2 s & $<$5 s & Critical for same-day freshness windows; delays reduce redistribution probability. & REQ-13 \\
+\hline
+Pickup Success Rate & $\geq$85\% & 70\% & Measures follow-through after assignment; low rates trigger no-show mitigation. & REQ-06 \\
+\hline
+Notification Delivery & $<$5 s (95\%) & $<$10 s & Rapid alerts are essential given the 1--3 hour pickup window. & REQ-12 \\
+\hline
+Charity Priority & $\geq$90\% ($\geq$10\,kg) & 80\% & Ensures verified organizations receive mandatory priority access. & REQ-03 \\
+\hline
+Radius Enforcement & 100\% ($\pm$50\,m) & 100\% & Non-negotiable boundary; any violation is a critical failure. & REQ-01 \\
+\hline
+System Response & $<$500\,ms & $<$1 s & Maintains usability during peak concurrency at meal hours. & REQ-16 \\
+\hline
+Concurrent Users & $\geq$200 & 100 & Handles peak lunch and dinner demand without degradation. & REQ-09 \\
+\hline
+System Uptime & $\geq$99\% & 97\% & Ensures availability during all daily operating hours. & REQ-15 \\
+\hline
+Reassignment Success & $\geq$85\% & 70\% & Validates the 3-reassignment cascade with compressed timeouts. & REQ-06 \\
+\hline
+Peripheral Match Rate & $\geq$15\% & 10\% & Confirms the 30\% fairness weight counteracts proximity bias. & REQ-11 \\
+\hline
+Anomaly Detection & 100\% logged & 100\% & Detects informal coordination networks bypassing the algorithm. & REQ-07 \\
+\hline
+\end{tabular}
+\end{table*}
+
+\subsection{Testing Strategy}
+
+The testing strategy is structured in four sequential layers, aligned with the three-phase implementation plan defined in Workshop~2.
+
+\textbf{Unit Testing:} Each service module (SurplusModule, MatchingModule, NotificationModule, AnalyticsModule) is tested in isolation. Critical unit tests cover: the PostGIS \texttt{ST\_DWithin} query returning only users within 3\,km (REQ-01), the composite scoring function producing correct priority rankings (REQ-03, REQ-11), and the Bull queue serialization preventing duplicate assignments under concurrent requests (REQ-09). Target coverage: $\geq$80\% of all service functions.
+
+\textbf{Integration Testing:} End-to-end flows are validated across module boundaries. Key integration scenarios include: (1)~a donor publishes a surplus and the matching engine correctly selects a verified charity within 2 seconds; (2)~a no-show triggers automatic reassignment with a compressed timeout and the surplus is never permanently locked; (3)~a geolocation failure activates the manual fallback within 5 seconds (REQ-04); and (4)~staggered notifications reach the 500\,m tier before the 1\,km and 3\,km tiers, with a maximum of 50 simultaneous dispatches per surplus.
+
+\textbf{Acceptance Testing:} System behavior is validated against the acceptance criteria in Table~\ref{tab:qa_metrics} using simulated donor and recipient accounts on the local Docker Compose environment. Load tests simulate $\geq$200 concurrent users during a peak meal-hour scenario. Acceptance is granted only when all minimum acceptable thresholds in Table~\ref{tab:qa_metrics} are met simultaneously across a 48-hour continuous test run.
+
+\textbf{Pilot Validation:} Following prototype completion (Workshop~4), a controlled pilot is conducted within the operational radius over eight weeks. Real KPI data --- kilograms redistributed, pickup completion rates, notification response times, and equity index values --- are collected and compared against the targets in Table~\ref{tab:qa_metrics}. User experience is assessed through a post-pilot Likert-scale survey (1--5) covering usability, notification timeliness, and perceived social impact.
+
+\subsection{Continuous Improvement}
+
+Quality assurance does not end at deployment. The platform implements a feedback-driven improvement cycle informed by the chaotic dynamics identified in Workshop~1: weekly metric reviews by system administrators detect operational trends; the matching algorithm's fairness weight (currently 30\%) is tuned based on observed equity index values; supplier activity trends are monitored to detect early signs of disengagement (alert threshold: $>$30\% drop in posts per week); and the administrative dashboard presents contextualized metrics with Bogotá benchmarks to prevent the negative feedback loop between low performance indicators and supplier demotivation.
+\end{document}
