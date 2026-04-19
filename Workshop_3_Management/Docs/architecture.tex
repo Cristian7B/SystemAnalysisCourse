@@ -1,0 +1,63 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{margin=1in}
+
+\title{Architecture Analysis and Improvements}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+I'll solve the issue here and also in a \texttt{.tex} file uploaded in \textbf{feature/w3-architecture}.
+
+\section*{1. Review the architecture diagram and update if necessary}
+
+Reviewing the architecture diagram, I found two crucial issues that critically impact the system architecture:
+
+\begin{itemize}
+    \item The first is the synchronous dependency with \textbf{Notification Service}. When a user activates a trigger to create and resolve a \textit{notification}, the program awaits a response from the service. Instead, we should use a \textbf{Message Broker}. This way, once the matching algorithm confirms an assignment, a message is sent to the queue and the notification service processes it asynchronously, so the application does not have to wait for the message to be sent.
+    
+    \item The second issue is evident. The \textbf{Application Layer} depends directly on external services such as \textit{Google Maps API, Mapbox, Delivery Platforms, etc.}
+\end{itemize}
+
+\section*{2. Architecture improvements: Modularity, Fault Tolerance, Scalability, Maintainability}
+
+\begin{enumerate}
+    \item \textbf{Modularity}: The diagram follows a clear Separation of Concerns. By splitting functionalities into independent services (Surplus Registration, Geolocation, Matching, Notifications, Application, etc.), each module has a single responsibility.
+    
+    \item \textbf{Fault Tolerance}: The introduction of the Message Broker (Infrastructure Layer) significantly improves reliability through \textit{Asynchronous Resilience}. If the Notification Service crashes or a third-party SMS/Email provider fails, the message remains safely in the queue and is processed once the service recovers. Additionally, \textit{Isolation} ensures that failures in the Analytics Layer (Logging or Metrics) do not affect the core user experience.
+    
+    \item \textbf{Scalability}: This architecture supports Horizontal Scaling, which is essential for large-scale deployments (e.g., university-wide or city-wide). The Message Broker acts as a buffer, allowing the system to handle peak loads without degrading user experience.
+    
+    \item \textbf{Maintainability}: Changes such as switching from Google Maps to Mapbox only affect the Geolocation Service. The rest of the system remains unaffected. Centralized logging and metrics also simplify debugging and traceability across the system.
+\end{enumerate}
+
+\section*{3. Compliance with IEEE / ISO Standards}
+
+The architecture is structured to fulfill quality requirements defined in ISO/IEC 25010, particularly in terms of functional suitability, reliability, and maintainability. The Application Layer adheres to usability principles by offering a consistent interface for different users, while the Service Layer ensures modularity and correctness by isolating core logic.
+
+The Infrastructure Layer, through the Message Broker, supports reliability and fault tolerance by enabling asynchronous processing. The Data Layer aligns with ISO/IEC 27001 security principles via controlled access and PostGIS-backed data integrity. Finally, the Analytics Layer fulfills ISO 9001:2015 requirements for evidence-based decision-making by providing traceability and performance metrics.
+
+\section*{4. Integration Challenges and Solutions}
+
+Integration challenges are addressed through a Systems Analysis and Design approach that emphasizes service autonomy and interoperability. During analysis and planning, potential friction points between frontend inputs and backend processes were identified, leading to a modular architecture where each service communicates via standardized API contracts.
+
+This design enables incremental integration during implementation, reducing risks commonly associated with tightly coupled systems.
+
+\section*{5. Detailed Architecture Description}
+
+The architecture follows a hierarchical layered model designed to manage the full lifecycle of surplus food distribution.
+
+External actors (Restaurants and Volunteers) interact through a Mobile Application. Requests are processed by a Backend for Frontend (BFF) layer, specifically a User Management Interface, which orchestrates communication with the Service Layer.
+
+Within the Service Layer, Surplus Registration and Geolocation services (integrated with external Maps APIs) provide data to a Matching Algorithm responsible for assigning resources efficiently.
+
+To ensure performance and resilience, the system includes an Infrastructure Layer with a Message Broker that enables asynchronous processing. Once assignments are completed, background workers handle notifications and activity logging.
+
+All transactional data is stored in a PostGIS-enabled database to ensure spatial consistency. Finally, the Analytics Layer processes logs to generate metrics and insights, which are visualized through an Administrative Dashboard for monitoring and decision-making.
+
+\end{document}
