@@ -1,0 +1,87 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for \documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{longtable}
+\usepackage{geometry}
+\usepackage{tikz}
+
+\usetikzlibrary{positioning}
+\geometry{margin=1in}
+
+\title{System Requirements and Team Organization}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+\section{Team Organization}
+
+\subsection{Organizational Chart}
+
+\begin{figure}[H]
+\centering
+\begin{tikzpicture}[
+    node distance=2.2cm,
+    every node/.style={
+        draw,
+        rectangle,
+        rounded corners,
+        align=center,
+        text width=4.5cm,
+        minimum height=1.2cm,
+        font=\small
+    }
+]
+
+% Nodes
+\node (lead) {\textbf{Project Lead \\ Systems Analyst}\\
+Luna Alejandra Sandoval Rodríguez};
+
+\node (frontend) [below left=of lead] {\textbf{Frontend Developer \\ Systems Analyst}\\
+Cristian Camilo Bonilla Lizarazo};
+
+\node (backend) [below=of lead] {\textbf{Backend Developer \\ Systems Analyst}\\
+Nicolás Rodríguez Granados};
+
+\node (database) [below right=of lead] {\textbf{Database Specialist \\ Systems Analyst}\\
+Juan Sebastián Bravo Rojas};
+% Connections
+\draw[->] (lead) -- (frontend);
+\draw[->] (lead) -- (backend);
+\draw[->] (lead) -- (database);
+
+\end{tikzpicture}
+\caption{Project Organizational Structure}
+\end{figure}
+
+\subsection{Roles and Responsibilities}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{p{4cm} p{5cm} p{6cm}}
+\toprule
+\textbf{Team Member} & \textbf{Role} & \textbf{Responsibilities} \\
+\midrule
+
+Luna Alejandra Sandoval Rodríguez & Project Lead / Systems Analyst &
+Project planning and coordination; requirements definition; architecture validation; alignment with standards; decision-making \\
+
+Cristian Camilo Bonilla Lizarazo & Frontend Developer / Systems Analyst &
+UI/UX design; frontend implementation; API integration; responsiveness \\
+
+Nicolás Rodríguez Granados & Backend Developer / Systems Analyst &
+Business logic; matching algorithm; APIs; system integration \\
+
+Juan Sebastián Bravo Rojas & Database Specialist / Systems Analyst &
+Database design; PostGIS management; data integrity; performance tuning \\
+
+\bottomrule
+\end{tabular}
+\caption{Team Roles and Responsibilities}
+\end{table}
+
+\end{document}
