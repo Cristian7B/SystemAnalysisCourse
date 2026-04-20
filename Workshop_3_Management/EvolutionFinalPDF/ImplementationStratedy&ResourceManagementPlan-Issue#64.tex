@@ -1,0 +1,195 @@
+\documentclass[9pt,conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,english]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{threeparttable}
+\usepackage{float}
+
+\title{Food Waste Reduction Platform: Robust System Design and Project Management}
+
+\author{
+Luna Alejandra Sandoval Rodríguez \\
+\textit{Project Lead \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020053
+\and
+Cristian Camilo Bonilla Lizarazo \\
+\textit{Frontend Developer \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020015
+\and
+Nicolás Rodríguez Granados \\
+\textit{Backend Developer \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020037
+\and
+Juan Sebastián Bravo Rojas \\
+\textit{Database Specialist \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020004
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Implementation Strategy}
+% ============================================================
+The Implementation Strategy translates the Workshop 2 technical design and the Workshop 3 experimental validation into a concrete, reproducible development and deployment plan. It follows the best-practice collaboration guidelines established in \textit{TeamWork\_CS.pdf} (feature-branch workflow, atomic commits, mandatory peer reviews, and GitHub Projects board) and maintains full traceability to the 17 design requirements and the four-layer architecture defined in Workshop 2.
+
+\subsection{Implementation Phases}
+
+The Implementation Strategy translates the Workshop 2 technical design and the Workshop 3 experimental validation into a concrete, reproducible development and deployment plan. It follows the best-practice collaboration guidelines established in \textit{TeamWork\_CS.pdf} and maintains full traceability to the 17 design requirements and the four-layer architecture defined in Workshop 2.
+
+\subsection{Implementation Phases}
+
+\begin{enumerate}
+    \item \textbf{Phase 1 – Core Implementation and Experimentation (Workshop 3)}  
+    Full-stack prototype development using the Workshop 2 technology stack (completed by 23 May 2026).
+
+    \item \textbf{Phase 2 – Simulation, Pilot, and Final MVP (Workshop 4)}  
+    Realistic simulations, short controlled pilot, and delivery of all communication artifacts by 30 May 2026.
+\end{enumerate}
+
+\subsection{Required Infrastructure and Technology Stack}
+
+The platform is fully containerized to guarantee reproducibility and scalability:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Required Infrastructure and Technology Stack}
+\label{tab:infrastructure}
+\begin{tabular}{@{}p{1.5cm}p{2.0cm}p{3.5cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Component} & \textbf{Technology} \\
+\midrule
+Frontend & Mobile Application & React Native / Expo (Android \& iOS) \\
+Backend & REST APIs \& Business Logic & NestJS (Node.js) \\
+Data & Persistent Storage \& Geospatial Queries & PostgreSQL + PostGIS \\
+Concurrency & Caching \& Queues & Redis + Message Broker (RabbitMQ/Redis Streams) \\
+Notifications & Push Notifications & Firebase Cloud Messaging (FCM) \\
+Infrastructure & Containerization \& Orchestration & Docker + Docker Compose \\
+Deployment & Cloud Hosting (pilot) & AWS / Google Cloud (free tier for academic use) \\
+Monitoring & Analytics \& Dashboards & Custom Analytics Layer (PostgreSQL views) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All components are defined in a single \texttt{docker-compose.yml} file stored in the repository root, enabling one-command local deployment for development and testing.
+
+\subsection{Human Resources and Team Allocation}
+
+The implementation is executed by the four-member cross-functional team using the RACI matrix defined in the Project Charter (Section 4):
+
+\begin{itemize}
+    \item \textbf{Luna A. Sandoval Rodríguez} (Project Lead) – Overall coordination, integration, and quality gate reviews.
+    \item \textbf{Nicolás Rodríguez Granados} (Backend Developer) – Matching algorithm, APIs, and message broker.
+    \item \textbf{Cristian C. Bonilla Lizarazo} (Frontend Developer) – Mobile UI/UX and API integration.
+    \item \textbf{Juan S. Bravo Rojas} (Database Specialist) – PostGIS schema, data integrity, and analytics layer.
+\end{itemize}
+
+Weekly 45–60 minute coordination meetings and mandatory peer code reviews on GitHub ensure knowledge sharing and early detection of integration issues.
+
+\subsection{Estimated Budget and Resources}
+
+As an academic project, the budget is calculated primarily in human-hours with minimal monetary cost:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Estimated Budget (Workshop 3 + Workshop 4)}
+\label{tab:budget}
+\begin{tabular}{@{}p{2.5cm}p{3.0cm}p{2.5cm}@{}}
+\toprule
+\textbf{Resource} & \textbf{Description} & \textbf{Cost} \\
+\midrule
+Human Capital & 4 engineers $\times$ 10 h/week $\times$ 8 remaining weeks & 320 HH (no monetary cost) \\
+Cloud Infrastructure & Docker hosting + PostgreSQL + FCM (free tier) & \$0 (academic tier) \\
+Production Pilot Hosting & AWS/Google Cloud (estimated for 8-week pilot) & \$50 USD (theoretical) \\
+Development Tools & GitHub, Docker, Expo, PostGIS & \$0 (open source) \\
+Total Estimated Monetary Cost & & \textbf{\$50 USD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All software components are open-source or free-tier, ensuring zero licensing costs.
+
+\subsection{Rollout Timeline}
+
+The rollout follows a controlled, incremental approach aligned with the course schedule:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Rollout Timeline (Workshop 3 → Final MVP)}
+\label{tab:rollout-timeline}
+\begin{tabular}{@{}p{1.8cm}p{2.8cm}p{3.5cm}@{}}
+\toprule
+\textbf{Milestone} & \textbf{Date} & \textbf{Deliverables} \\
+\midrule
+Core Prototype Complete & 23 May 2026 & Full implementation, unit/integration tests, risk register validation (Workshop 4 delivery) \\
+Simulation & 20--23 May 2026 & 300-user load tests, performance benchmarking, sensitivity analysis \\
+Pilot Deployment & 24--30 May 2026 & Short controlled validation pilot within 3 km radius (Engineering Faculty area) \\
+Final MVP & 30 May 2026 & Production-ready application + administrative dashboard \\
+Communication Deliverables & 30 May 2026 & Scientific paper, academic poster, technical report, and final presentation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Gantt chart illustrating the complete timeline is presented in Fig.~\ref{fig:gantt} (Section 4).
+
+
+\subsection{Resource Management Plan}
+
+\subsubsection{Resource Allocation and Tracking}
+
+Resource usage is tracked through the GitHub Projects Kanban board and weekly burndown charts. Each sprint is limited to a maximum of 10 hours per team member to prevent burnout. Effort distribution is aligned with the RACI matrix defined in the Project Charter:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Resource Allocation Overview (Workshop 3–4)}
+\label{tab:resource-allocation}
+\begin{tabular}{@{}p{1.8cm}p{2.8cm}p{3.5cm}@{}}
+\toprule
+\textbf{Resource Type} & \textbf{Management Mechanism} & \textbf{Planned Effort / Cost} \\
+\midrule
+Human Resources & GitHub Projects + weekly burndown charts & 640 HH total (4 engineers × 10 h/week) \\
+Technical Infrastructure & Docker Compose + free-tier cloud services & \$0 (academic tier) \\
+Financial Resources & Monitored in project board & \$0--50 (theoretical pilot hosting) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Resource Monitoring and Control}
+
+\begin{itemize}
+    \item \textbf{Weekly Resource Review:} During the 45–60 minute status meeting, the team reviews burndown charts and flags any deviation greater than 15\%.
+    \item \textbf{Automatic Alerts:} GitHub issue labels (\texttt{resource:critical}, \texttt{resource:overallocated}) trigger notifications to the Project Lead.
+    \item \textbf{Control Gates:} No merge to \texttt{develop} is allowed without peer review and confirmation that the assigned effort was not exceeded.
+    \item \textbf{Contingency:} If any member exceeds 12 hours in a week, the Project Lead reassigns tasks immediately to maintain balance.
+\end{itemize}
+
+This plan guarantees that the project remains within academic constraints, ensures full traceability of effort, and supports the successful delivery of the final MVP and communication artifacts by \textbf{30 May 2026}.
+
+
+
+\begin{thebibliography}{10}
+\bibitem{w1} Workshop 1 – Food Waste Reduction Mobile Application, A Rigorous System Analysis, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{w2} Workshop 2 – System Design Document, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{ieee} IEEE Standards Association, ``IEEE 730-2014 - IEEE Standard for Software Quality Assurance Processes,'' 2014.
+\end{thebibliography}
+
+\end{document}
