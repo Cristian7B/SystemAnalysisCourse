@@ -55,7 +55,7 @@ The platform enables real-time surplus food redistribution with mandatory same-d
 ## 📌 Current Status – April 2026
 - ✅ Workshop 1 **delivered** 
 - ✅ Workshop 2 **delivered**
-- 🔄 Workshop 3 **in progress** (delivery 25 April 2026)  
+- ✅ Workshop 3 **delivered**
 - ⏳ Workshop 4 and Final Prototype coming next
 
-**Last updated**: April 12, 2026
+**Last updated**: April 26, 2026
