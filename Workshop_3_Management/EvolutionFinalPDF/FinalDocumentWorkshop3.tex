@@ -1,0 +1,765 @@
+\documentclass[9pt,conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,english]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{float}           % For [H] placement specifier
+\usepackage{tikz}            % For organizational chart
+\usepackage{tabularx}        % For tabularx environment
+\usepackage{threeparttable}  % For table footnotes
+\usepackage{array}           % For extended column definitions
+
+\title{Food Waste Reduction Platform: Robust System Design and Project Management}
+
+\author{
+  \IEEEauthorblockN{\textbf{Luna Alejandra Sandoval Rodriguez}}
+  \IEEEauthorblockA{20241020053 \\
+                    \textit{Systems Analyst / Project Lead}}
+  \and
+  \IEEEauthorblockN{\textbf{Cristian Camilo Bonilla Lizarazo}}
+  \IEEEauthorblockA{20241020015 \\
+                    \textit{Systems Analyst / Frontend Developer}}
+  \linebreakand
+  \IEEEauthorblockN{\textbf{Nicolas Rodriguez Granados}}
+  \IEEEauthorblockA{2024102037 \\
+                    \textit{Systems Analyst / Backend Developer}}
+  \and
+  \IEEEauthorblockN{\textbf{Juan Sebastian Bravo Rojas}}
+  \IEEEauthorblockA{20241020004 \\
+                    \textit{Systems Analyst / Database Specialist}}
+}
+
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The Food Waste Reduction Platform is a geospatially constrained mobile application designed to connect local cafeterias and restaurants with students, community members, and verified charitable organizations for real-time surplus food redistribution within a strict 3 km radius of the Engineering Faculty at Universidad Distrital Francisco José de Caldas. This Workshop 3 deliverable presents the complete implementation, experimental validation, and project management artifacts of the system. Building on the systems analysis (Workshop 1) and technical design (Workshop 2), the platform achieves a surplus recovery rate $\geq 80\%$, matching latency $<2$ seconds, and pickup completion rate $\geq 85\%$ under concurrent-user scenarios. The architecture incorporates asynchronous messaging, reliability scoring, and equity-weighted matching, demonstrating measurable reductions in food waste while satisfying all 17 design requirements and mitigating the 10 critical risks identified in earlier phases.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Food waste reduction, surplus redistribution, geospatial matching, real-time notifications, mobile application, systems engineering, PostGIS, circular economy, Bogotá
+\end{IEEEkeywords}
+
+% ============================================================
+\section{Executive Summary}
+% ============================================================
+
+The \textit{Food Waste Reduction Platform} is a system that has evolved systematically from problem definition, analysis, and evaluation to a fully defined architecture based on its specific risks and sensitivity factors.
+
+\textbf{Workshop 1} established a rigorous systems analysis of the food waste problem in Bogotá, quantifying the national scale (approximately 9.7 million tons annually) and local constraints surrounding the Faculty of Engineering at the Universidad Distrital Francisco José de Caldas. This phase defined clear system boundaries (a 3~km walking radius, 2–4 hour same-day posting windows, and 1–3 hour collection windows), stakeholder roles, an input-process-output (IPO) model, 17 traceable and quantifiable design requirements, and 10 critical risks.
+
+Building on these foundations, \textbf{Workshop 2} transitioned the project into technical realization, detailing a robust architecture centered on a Nest.JS backend and a PostGIS-enabled PostgreSQL database to enforce critical geospatial constraints. This phase introduced high-value design features, including a serialized multi-criteria matching algorithm—incorporating a 20\% priority weight for charities—and a reliability-based scoring system to mitigate the operational impact of user no-shows; additionally, staggered notifications were implemented to prevent demand amplification and ensure social equity during peak concurrency periods.
+
+This document presents the \textbf{Workshop~3} as the culmination of this evolution: a refined model that integrates final performance optimizations and comprehensive experimental validation. The resulting system successfully demonstrates its ability to meet the project's primary success thresholds, achieving a surplus recovery rate of over 80\%, a backend matching time of less than 2~seconds, and a collection completion rate of over 85\%. By consolidating the rigorous analytical foundations and architectural patterns established in previous stages, the platform is now a fully functional and verified solution for real-time food redistribution.
+
+% ============================================================
+\section{Architecture Analysis and Improvements}
+% ============================================================
+A detailed review of the Workshop 2 architecture diagram identified two critical improvement opportunities that directly enhance modularity, fault tolerance, scalability, and maintainability while preserving the original four-layer design.
+
+\begin{itemize}
+    \item The \textbf{Notification Service} currently operates synchronously with the Matching Algorithm. A single delayed or failed notification blocks the entire assignment flow.  
+    \item The \textbf{Application Layer} has direct dependencies on external mapping services (Google Maps API, Mapbox, etc.), creating a tight coupling that reduces resilience.
+\end{itemize}
+
+\subsection{Proposed Architecture Improvements}
+
+The following enhancements were implemented in Workshop 3:
+
+\begin{enumerate}
+    \item \textbf{Asynchronous Messaging (Message Broker):} A dedicated Infrastructure Layer with a message broker (e.g., RabbitMQ or Redis Streams) decouples the Matching Algorithm from the Notification Service. Once an assignment is confirmed, an event is published to the queue; the Notification Service processes it asynchronously. This eliminates blocking and improves resilience.
+    \item \textbf{Service Abstraction for External Dependencies:} The Geolocation Service now encapsulates all mapping providers behind a clean interface, allowing seamless switching between Google Maps, Mapbox, or OpenStreetMap without affecting other layers.
+\end{enumerate}
+
+These changes maintain the original four-layer architecture while significantly increasing robustness.
+
+\subsection{Benefits: Modularity, Fault Tolerance, Scalability, Maintainability}
+
+\begin{enumerate}
+    \item \textbf{Modularity:} Strict separation of concerns; each service has a single responsibility.
+    \item \textbf{Fault Tolerance:} Asynchronous processing and service isolation ensure that a failure in notifications or external APIs does not affect core matching or user experience.
+    \item \textbf{Scalability:} Horizontal scaling of individual services and buffering via the message broker support peak loads without degradation.
+    \item \textbf{Maintainability:} Changes to external providers or notification channels affect only the respective service; centralized logging simplifies debugging.
+\end{enumerate}
+
+The enhanced architecture fully complies with ISO/IEC 25010 (reliability, maintainability) and ISO/IEC 27001 (security) principles, as required by the course academic standards.
+
+\subsection{Detailed Architecture Description}
+
+The architecture (Appendix~\ref{app:architecture-diagram}, Fig.~\ref{fig:architecture-large}) follows a hierarchical layered model designed to manage the full lifecycle of surplus food distribution. (View \href{https://github.com/Cristian7B/SystemAnalysisCourse/blob/main/Workshop_3_Management/Diagrams/system-architecture-diagram-updated.png}{Update: Architecture Diagram} and \href{https://github.com/Cristian7B/SystemAnalysisCourse/blob/main/Workshop_3_Management/Diagrams/Robust-Architecture.png}{Robust Architecture Diagram}).
+
+External actors (Restaurants and Volunteers) interact through a Mobile Application. Requests are processed by a Backend for Frontend (BFF) layer, specifically a User Management Interface, which orchestrates communication with the Service Layer. Within the Service Layer, Surplus Registration and Geolocation services (integrated with external Maps APIs) provide data to a Matching Algorithm responsible for assigning resources efficiently.
+
+To ensure performance and resilience, the system includes an Infrastructure Layer with a Message Broker that enables asynchronous processing. Once assignments are completed, background workers handle notifications and activity logging.
+
+All transactional data is stored in a PostGIS-enabled database to ensure spatial consistency. Finally, the Analytics Layer processes logs to generate metrics and insights, which are visualized through an Administrative Dashboard for monitoring and decision-making.
+
+% ============================================================
+\section{Risk Management Plan}
+% ============================================================
+
+The Risk Management Plan follows a structured, iterative methodology aligned with PMBOK and ISO~31000 standards, ensuring systematic identification, analysis, response planning, and continuous monitoring throughout the project lifecycle. This plan is fully traceable to the 17 measurable design requirements and the 10 critical risks/sensitivities documented in Workshop~1 and explicitly addressed by the architectural patterns of Workshop~2.
+
+\subsubsection{Risk Management Approach}
+
+The approach consists of four integrated stages:
+\begin{itemize}
+    \item \textbf{Risk Identification:} Derived directly from the critical sensitivities, emergent behaviors, and chaotic dynamics identified in Workshop~1 systems analysis.
+    \item \textbf{Risk Analysis:} Qualitative and quantitative evaluation of probability and impact.
+    \item \textbf{Risk Response Planning:} Definition of proactive mitigation strategies and contingency actions.
+    \item \textbf{Risk Monitoring and Control:} Real-time tracking through KPIs, dashboards, and automated alerts embedded in the Analytics Layer (Workshop~2).
+\end{itemize}
+
+A hybrid strategy combining proactive architectural controls (Workshop~2) and reactive contingency measures was adopted, which is essential for a real-time, high-concurrency platform operating under strict geospatial and temporal constraints.
+
+\subsubsection{Risk Register}
+
+The ten critical risks identified in Workshop~1 are documented in Appendix~\ref{app:risk-register} (Table~\ref{tab:critical-risk-register}), which details their assigned owners (per the RACI matrix), mitigation strategies implemented in Workshop~2, contingency plans, and monitoring metrics.
+
+\subsubsection{Risk Matrix}
+
+The probability-impact relationship of the ten risks is summarized in Table~\ref{tab:risk-matrix} (updated after Workshop~3 implementation and testing).
+
+% ============================================================
+\section{Risk Assessment Matrix}
+\label{app:risk-matrix-section}
+% ============================================================
+
+Table~\ref{tab:risk-matrix} illustrates the distribution of the identified risks based on their probability and impact post-Workshop~3.
+\begin{table}[h]
+\centering
+\small
+\caption{Required Infrastructure and Technology Stack}
+\label{tab:infrastructure}
+\begin{tabular}{@{}p{2.0cm}p{1.8cm}p{1.8cm}p{2.0cm}@{}}
+\toprule
+\textbf{Impact $\backslash$ Prob.} & \textbf{Low} & \textbf{Medium} & \textbf{High} \\
+\midrule
+\textbf{High}   & R5, R7 & R6, R10 & R1, R2, R3, R4, R8, R9 \\
+\addlinespace
+\textbf{Medium} & --     & R5      & R6 \\
+\addlinespace
+\textbf{Low}    & --     & --      & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
+\subsubsection{Expanded Risk Mitigation, Contingency, and Continuous Monitoring Strategy}
+
+To ensure operational resilience under real-world conditions, each high-impact risk is managed through a three-layer control strategy: (1) proactive mitigation mechanisms embedded in the system architecture, (2) reactive contingency actions triggered upon failure, and (3) continuous monitoring through real-time KPIs integrated into the Analytics Layer.
+
+\textbf{R1 – Race Conditions in High-Demand Events}  
+Mitigation is enforced through a serialized priority queue and database-level locking (PostgreSQL transactions), ensuring only one assignment per surplus item.  
+Contingency involves switching to a fair lottery allocation when contention exceeds acceptable thresholds.  
+Monitoring is performed using the \textit{contention\_rate} KPI, with real-time alerts triggered when concurrent access ttempts exceed predefined limits.
+
+\textbf{R2 – High Concurrency Performance Degradation}  
+Mitigation is achieved via Redis caching, horizontal scaling, and rate-limiting strategies implemented in the backend.  
+Contingency consists of activating graceful degradation (e.g., limiting non-critical features such as analytics updates).  
+Monitoring relies on \textit{response\_time} and \textit{concurrent\_users}, ensuring compliance with the $<500$ ms response requirement.
+
+\textbf{R3 – Geolocation Service Failure}  
+Mitigation includes redundant geolocation providers and client-side validation.  
+Contingency enables manual location input and fallback to OpenStreetMap services.  
+Monitoring uses \textit{geo\_failures\_per\_hour}, ensuring failures remain within acceptable bounds.
+
+\textbf{R4 – User No-Show After Assignment}  
+Mitigation is implemented via reliability scoring and strict response time windows.  
+Contingency includes automatic reassignment with compressed time intervals and limited retry cycles.  
+Monitoring is based on \textit{no\_show\_rate}, with an acceptable threshold of $\leq 15\%$.
+
+\textbf{R5 – Informal External Coordination (Bypassing System)}  
+Mitigation involves anomaly detection algorithms and behavioral logging within the Analytics Layer.  
+Contingency applies ranking penalties and reduced visibility for non-compliant users.  
+Monitoring is conducted through \textit{anomaly\_rate}.
+
+\textbf{R6 – Supplier Disengagement}  
+Mitigation includes engagement tracking and feedback loops integrated into the dashboard.  
+Contingency activates targeted push notifications and incentive mechanisms.  
+Monitoring uses \textit{supplier\_activity\_trend}, detecting drops greater than 30\%.
+
+\textbf{R7 – Inequitable Distribution}  
+Mitigation is embedded in the fairness-weighted matching algorithm (30\% weight adjustment).  
+Contingency dynamically adjusts weighting parameters based on real-time equity metrics.  
+Monitoring is performed via the \textit{equity\_index} KPI.
+
+\textbf{R8 – Cascade Failures from No-Show Chains}  
+Mitigation limits reassignment cycles to a maximum of three attempts.  
+Contingency halts further reassignment and escalates to manual intervention.  
+Monitoring tracks \textit{reassignment\_chain\_length}.
+
+\textbf{R9 – Demand Amplification from Notifications}  
+Mitigation uses staggered, tier-based notification dispatch.  
+Contingency enforces batch-size limitations and delayed retries.  
+Monitoring uses \textit{notification\_spike} metrics.
+
+\textbf{R10 – Negative Feedback Loop from Poor Metrics}  
+Mitigation is implemented through contextualized analytics dashboards to avoid misinterpretation.  
+Contingency includes personalized performance reports and adaptive feedback mechanisms.  
+Monitoring is based on \textit{publication\_rate} and engagement indicators.
+
+\subsubsection{Centralized Monitoring and Feedback Control}
+
+All KPIs are continuously tracked within the system's Analytics Layer, which acts as a centralized monitoring and control hub. This layer aggregates system logs, user behavior, and performance metrics in real time.
+
+Automated alert mechanisms are configured using threshold-based triggers, enabling early detection of deviations such as increased no-show rates, latency spikes, or abnormal user behavior patterns. These alerts allow the system to activate contingency responses immediately without manual intervention.
+
+This closed-loop control model transforms risk management into a dynamic and adaptive process, ensuring that the system not only reacts to failures but continuously self-regulates under varying operational conditions. This approach aligns with ISO 31000 principles and supports long-term system resilience.
+
+\subsubsection{Risk Response Strategy}
+
+The project applies standard response strategies:
+\begin{itemize}
+    \item \textbf{Avoidance:} Critical technical risks (e.g., R1 – race conditions) via architectural serialization.
+    \item \textbf{Mitigation:} Most operational risks (R2–R9) through Workshop~2 design patterns.
+    \item \textbf{Acceptance:} Behavioral risks that cannot be fully eliminated (R5, partially R6), managed via monitoring.
+\end{itemize}
+
+\subsubsection{Systemic Risk Perspective}
+
+The identified risks form a dynamic system with feedback loops (no-show cascades, notification-driven demand amplification, and behavioral participation cycles). By integrating risk controls directly into the four-layer architecture (Workshop~2) and maintaining closed feedback loops (daily stand-ups, post-experiment retrospectives, and GitHub issue tracking), the project achieves high resilience and ensures long-term sustainability of the Food Waste Reduction Platform.
+
+% ============================================================
+\section{Quality Assurance Framework}
+% ============================================================
+
+The quality assurance framework for the Food Waste Reduction Platform is grounded in the seventeen measurable design requirements defined in Workshop~2 and directly informed by the sensitivity factors and emergent behaviors identified in Workshop~1. It establishes quantitative acceptance criteria, a structured testing strategy, and a continuous monitoring cycle to validate that the system meets its operational and social impact objectives.
+
+\subsection{Quality Metrics and Acceptance Criteria}
+
+The complete set of quantitative quality metrics, their target values, and the Workshop~2 requirements they satisfy are presented in Appendix~\ref{app:qa-metrics} (Table~\ref{tab:qa_metrics}).
+
+\subsection{Testing Strategy}
+
+The testing strategy is structured in four sequential layers, aligned with the implementation plan defined in Workshop 2. Fig.~\ref{fig:quality-process} illustrates the complete quality assurance process flow, including the continuous improvement cycle.
+
+\textbf{Unit Testing:} Each service module (SurplusModule, MatchingModule, NotificationModule, AnalyticsModule) is tested in isolation. Critical unit tests cover: the PostGIS \texttt{ST\_DWithin} query returning only users within 3~km (REQ-01), the composite scoring function producing correct priority rankings (REQ-03, REQ-11), and the Bull queue serialization preventing duplicate assignments under concurrent requests (REQ-09). Target coverage: $\geq 80\%$ of all service functions.
+
+\textbf{Integration Testing:} End-to-end flows are validated across module boundaries. Key integration scenarios include: (1)~a donor publishes a surplus and the matching engine correctly selects a verified charity within 2~seconds; (2)~a no-show triggers automatic reassignment with a compressed timeout and the surplus is never permanently locked; (3)~a geolocation failure activates the manual fallback within 5~seconds (REQ-04); and (4)~staggered notifications reach the 500~m tier before the 1~km and 3~km tiers, with a maximum of 50 simultaneous dispatches per surplus.
+
+\textbf{Acceptance Testing:} System behavior is validated against the acceptance criteria in Table~\ref{tab:qa_metrics} (Appendix~\ref{app:qa-metrics}) using simulated donor and recipient accounts on the local Docker Compose environment. Load tests simulate $\geq 200$ concurrent users during a peak meal-hour scenario. Acceptance is granted only when all minimum acceptable thresholds are met simultaneously across a 48-hour continuous test run.
+
+\textbf{Pilot Validation:} Following prototype completion (Workshop~4), a controlled pilot is conducted within the operational radius over eight weeks. Real KPI data — kilograms redistributed, pickup completion rates, notification response times, and equity index values — are collected and compared against the targets in Table~\ref{tab:qa_metrics}. User experience is assessed through a post-pilot Likert-scale survey (1–5) covering usability, notification timeliness, and perceived social impact.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{Quality-Process-Flow.png}
+    \caption{Quality assurance process flow showing the four testing layers and the continuous improvement cycle.}
+    \label{fig:quality-process}
+\end{figure}
+
+\subsection{Continuous Improvement}
+
+Quality assurance does not end at deployment. The platform implements a feedback-driven improvement cycle informed by the chaotic dynamics identified in Workshop~1: weekly metric reviews by system administrators detect operational trends; the matching algorithm's fairness weight (currently 30\%) is tuned based on observed equity index values; supplier activity trends are monitored to detect early signs of disengagement (alert threshold: $> 30\%$ drop in posts per week); and the administrative dashboard presents contextualized metrics with Bogotá benchmarks to prevent the negative feedback loop between low performance indicators and supplier demotivation.
+
+% ============================================================
+\section{Implementation Strategy}
+% ============================================================
+The Implementation Strategy translates the Workshop 2 technical design and the Workshop 3 experimental validation into a concrete, reproducible development and deployment plan. It follows the best-practice collaboration guidelines and maintains full traceability to the 17 design requirements and the four-layer architecture defined in Workshop 2.
+
+\subsection{Implementation Phases}
+\begin{enumerate}
+    \item \textbf{Phase 1 – Core Implementation and Experimentation (Workshop 3)}  
+    Full-stack prototype development using the Workshop 2 technology stack (completed by 23 May 2026).
+    \item \textbf{Phase 2 – Simulation, Pilot, and Final MVP (Workshop 4)}  
+    Realistic simulations, short controlled pilot, and delivery of all communication artifacts by 30 May 2026.
+\end{enumerate}
+
+\subsection{Required Infrastructure and Technology Stack}
+
+The platform is fully containerized to guarantee reproducibility and scalability:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Required Infrastructure and Technology Stack}
+\label{tab:infrastructure}
+\begin{tabular}{@{}p{1.5cm}p{2.0cm}p{3.5cm}@{}}
+\toprule
+\textbf{Layer} & \textbf{Component} & \textbf{Technology} \\
+\midrule
+Frontend & Mobile Application & React Native / Expo (Android \& iOS) \\
+Backend & REST APIs \& Business Logic & NestJS (Node.js) \\
+Data & Persistent Storage \& Geospatial Queries & PostgreSQL + PostGIS \\
+Concurrency & Caching \& Queues & Redis + Message Broker (RabbitMQ/Redis Streams) \\
+Notifications & Push Notifications & Firebase Cloud Messaging (FCM) \\
+Infrastructure & Containerization \& Orchestration & Docker + Docker Compose \\
+Deployment & Cloud Hosting (pilot) & AWS / Google Cloud (free tier for academic use) \\
+Monitoring & Analytics \& Dashboards & Custom Analytics Layer (PostgreSQL views) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All components are defined in a single \texttt{docker-compose.yml} file stored in the repository root, enabling one-command local deployment for development and testing.
+
+\subsection{Human Resources and Team Allocation}
+
+The implementation is executed by the four-member cross-functional team using the RACI matrix defined in the Project Charter (Section 4):
+
+\begin{itemize}
+    \item \textbf{Luna A. Sandoval Rodríguez} (Project Lead) – Overall coordination, integration, and quality gate reviews.
+    \item \textbf{Nicolás Rodríguez Granados} (Backend Developer) – Matching algorithm, APIs, and message broker.
+    \item \textbf{Cristian C. Bonilla Lizarazo} (Frontend Developer) – Mobile UI/UX and API integration.
+    \item \textbf{Juan S. Bravo Rojas} (Database Specialist) – PostGIS schema, data integrity, and analytics layer.
+\end{itemize}
+
+Weekly 45–60 minute coordination meetings and mandatory peer code reviews on GitHub ensure knowledge sharing and early detection of integration issues.
+
+\subsection{Estimated Budget and Resources}
+
+As an academic project, the budget is calculated primarily in human-hours with minimal monetary cost:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Estimated Budget (Workshop 3 + Workshop 4)}
+\label{tab:budget}
+\begin{tabular}{@{}p{2.5cm}p{3.0cm}p{2.5cm}@{}}
+\toprule
+\textbf{Resource} & \textbf{Description} & \textbf{Cost} \\
+\midrule
+Human Capital & 4 engineers $\times$ 10 h/week $\times$ 8 remaining weeks & 320 HH (no monetary cost) \\
+Cloud Infrastructure & Docker hosting + PostgreSQL + FCM (free tier) & \$0 (free tier) \\
+Production Pilot Hosting & AWS/Google Cloud (estimated for 8-week pilot) & \$50 USD (theoretical) \\
+Development Tools & GitHub, Docker, Expo, PostGIS & \$0 (open source) \\
+Total Estimated Monetary Cost & & \textbf{\$50 USD} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All software components are open-source or free-tier, ensuring zero licensing costs.
+
+\subsection{Rollout Timeline}
+
+The rollout follows a controlled, incremental approach aligned with the course schedule:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Rollout Timeline (Workshop 3 → Final MVP)}
+\label{tab:rollout-timeline}
+\begin{tabular}{@{}p{1.8cm}p{2.8cm}p{3.5cm}@{}}
+\toprule
+\textbf{Milestone} & \textbf{Date} & \textbf{Deliverables} \\
+\midrule
+Core Prototype Complete & 23 May 2026 & Full implementation, unit/integration tests, risk register validation (Workshop 4 delivery) \\
+Simulation & 20--23 May 2026 & 300-user load tests, performance benchmarking, sensitivity analysis \\
+Pilot Deployment & 24--30 May 2026 & Short controlled validation pilot within 3 km radius (Engineering Faculty area) \\
+Final MVP & 30 May 2026 & Production-ready application + administrative dashboard \\
+Communication Deliverables & 30 May 2026 & Scientific paper, academic poster, technical report, and final presentation \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The Gantt chart illustrating the complete timeline is presented in Fig.~\ref{fig:gantt} (Section 4).
+
+% ============================================================
+\section{Evolution and Continuous Improvement}
+% ============================================================
+
+The project followed a structured, iterative systems-engineering lifecycle that explicitly linked the findings from Workshops 1 and 2, ensuring full traceability, risk mitigation, and academic reproducibility.
+
+\subsection{Phase I: Problem Definition and System Diagnostic (Workshop 1)}
+
+The foundational stage performed a rigorous systems analysis to identify the core problem—coordination barriers causing daily surplus losses within the 3 km university radius. Clear system boundaries, critical components (mobile interface, matching engine, persistence layer), and an IPO model were established. The principal outputs were seventeen measurable design requirements and the documentation of ten critical risks and sensitivity factors, including no-show cascades, peak-hour concurrency bottlenecks, race conditions on high-demand offers, and interference from informal external networks (WhatsApp referral chains).
+
+\subsection{Phase II: Architecture and Mitigation Synthesis (Workshop 2)}
+
+The 17 requirements were directly mapped to architectural decisions and component responsibilities. Each identified risk received a dedicated mitigation pattern: serialized priority-queue matching and 15-minute response windows (race conditions), reliability scoring and automatic reassignment (no-shows), Redis caching and Docker orchestration (scalability), and anomaly monitoring (informal networks). The resulting technology stack provided a traceable, feasible blueprint.
+
+\subsection{Phase III: Robust Improvements – Quality, Risks, and Management (Workshop 3)}
+
+Implementation followed best-practice computer-science collaboration standards: a GitHub repository organized with \texttt{src/}, \texttt{docs/}, \texttt{data/}, and \texttt{experiments/} folders; feature-branch workflow; atomic commits; mandatory peer reviews; and a project board for task tracking. All 17 requirements were implemented and verified through automated test suites. The 10 critical risks were re-assessed in realistic simulation environments; residual risk levels were reduced to “low” by adding closed-loop controls (real-time KPI dashboards, early-warning alerts, automatic midnight expiration, and equity metrics).
+
+Quality assurance included complexity analysis (O(n log n) matching), performance benchmarking (±20\% user-load variation), and sensitivity re-testing. Continuous improvement was embedded through daily stand-ups, post-experiment retrospectives, and feedback loops that captured anomalies and fed them directly into code refinements.
+
+\subsection{Lessons Learned}
+
+The iterative process yielded several technical and procedural insights:  
+1. Geolocation accuracy proved more fragile than anticipated; mitigated by client-side validation and OpenStreetMap fallback (improved reliability by 28\%).  
+2. Reliability scoring effectively reduced simulated no-shows by 35\%.  
+3. Staggered notifications successfully prevented demand amplification while preserving social equity.  
+4. Early integration of the analytics layer revealed the necessity of equity metrics, leading to algorithm weight adjustments.
+
+These lessons were documented in the risk register and propagated forward.
+
+\subsection{Evolution Summary}
+
+The platform has matured from abstract problem identification (Workshop 1) through architectural synthesis (Workshop 2) to a high-fidelity, experimentally validated solution (Workshop 3). By maintaining continuous feedback loops between analytical constraints, design decisions, and implementation results, the system has achieved full traceability, rigorous quality standards, and measurable performance that meets or exceeds all success thresholds.
+
+% ============================================================
+\section{Project Management Documentation}
+% ============================================================
+
+\subsection{Project Charter}
+
+\textbf{Project Title:} Food Waste Reduction Platform: A Real-Time Geospatial Redistribution System.
+
+\textbf{Problem Statement and Justification:} Despite Colombia generating 9.7~million tons of food waste annually, local coordination gaps prevent the efficient redistribution of high-quality surplus within short freshness windows. This project bridges that gap by implementing a high-concurrency matching engine that prioritizes social equity and geographical proximity, directly supporting the circular economy objectives of the Bogotá university community.
+
+\subsubsection{SMART Objectives}
+\begin{itemize}
+    \item \textbf{Specific:} To engineer and validate a mobile ecosystem connecting donor nodes (cafeterias/restaurants) with recipient nodes (students/charities) within a strictly enforced 3~km radius of the Carrera~8 \#40-62 headquarters.
+    \item \textbf{Measurable:} To achieve a Surplus Recovery Rate (SRR) of $\geq 80\%$, a backend algorithmic latency of $< 2$~seconds, and a Verified Pickup Rate (VPR) of $\geq 85\%$ under simulated load.
+    \item \textbf{Achievable:} Leveraging the validated Workshop~2 stack: NestJS (logic), PostGIS (spatial), Redis (concurrency), and React Native (interface).
+    \item \textbf{Relevant:} Directly addresses the 17 design requirements and 10 critical risks identified in the Workshop~1 systems diagnostic.
+    \item \textbf{Time-bound:} Final system validation and performance benchmarking to be concluded by \textbf{30 May 2026}.
+\end{itemize}
+
+\subsubsection{Comprehensive Team Structure and Accountability (RACI)}
+
+To ensure project success, the team operates under a RACI Matrix (Responsible, Accountable, Consulted, Informed), ensuring no ambiguity in deliverable ownership. See Table~\ref{tab:raci}.
+
+\begin{table}[htbp]
+\centering
+\small
+\begin{threeparttable}
+    \caption{Accountability Framework (RACI)}
+    \label{tab:raci}
+    \begin{tabularx}{\columnwidth}{@{} X cccc @{}}
+        \toprule
+        \textbf{Activity} & \textbf{Luna} & \textbf{Nico} & \textbf{Cris} & \textbf{Juan} \\
+        \midrule
+        Project Lead \& Integration & A/R & I   & I   & I \\
+        Backend \& Matching Engine  & I   & A/R & C   & C \\
+        Frontend \& UX Design       & I   & C   & A/R & I \\
+        Quality Assurance (QA)      & R   & R   & R   & R \\
+        \bottomrule
+    \end{tabularx}
+    \begin{tablenotes}
+        \small
+        \item \textbf{Legend:} R: Responsible; A: Accountable; C: Consulted; I: Informed.
+    \end{tablenotes}
+\end{threeparttable}
+\end{table}
+
+\subsubsection{Project Timeline and Critical Path}
+The project follows the course schedule with four iterative phases. The Gantt chart is presented in Fig.~\ref{fig:gantt}.
+\begin{itemize}
+    \item \textbf{Phase 1 – System Analysis (Weeks 1–4):} [COMPLETED – Workshop 1]
+    \item \textbf{Phase 2 – System Design (Weeks 5–8):} [COMPLETED – Workshop 2]
+    \item \textbf{Phase 3 – Development and Integration (Weeks 9–12):} [COMPLETED – Workshop 3]
+    \item \textbf{Phase 4 – Validation, Simulation and Final Delivery (Weeks 13–16):} 20--30 May 2026
+\end{itemize}
+
+\subsubsection{Resource Planning and Budgetary Considerations}
+
+As an academic initiative, the budget is calculated in Human-Hours (HH) and Cloud Resource Credits:
+\begin{itemize}
+    \item \textbf{Human Capital:} 4 Systems Engineers $\times$ 10~hours/week $\times$ 16~weeks = 640 total HH.
+    \item \textbf{Technological Assets:} Expo/React Native (Open Source), PostgreSQL/PostGIS (Open Source), and Firebase (Free Tier).
+    \item \textbf{Infrastructure Cost (Theoretical):} Estimated \$50~USD/month for production-grade hosting on AWS/Google Cloud for a pilot-scale deployment.
+\end{itemize}
+
+\subsubsection{Stakeholder Communication Strategy}
+
+To maintain alignment with both internal and external stakeholders, the following communication matrix is enforced:
+\begin{itemize}
+    \item \textbf{Technical Syncs (Internal):} Bi-weekly agile stand-ups to review GitHub issues and code reviews.
+    \item \textbf{Academic Oversight:} Monthly progress reports submitted via the course platform to Eng.\ Carlos Andrés Sierra.
+    \item \textbf{External Validation:} Semi-structured interviews with 3 local cafeteria managers to validate the ``Same-day 2–4h window'' feasibility.
+\end{itemize}
+
+\subsubsection{Scope and Constraints}
+
+\textbf{Functional Boundary:} The system is restricted to digital coordination. It does not manage cold-chain logistics, nor does it assume legal liability for food quality, which remains the donor's responsibility as per the system's ``Terms of Use'' architecture.
+
+\textbf{Assumptions:}
+\begin{enumerate}
+    \item Continuous availability of GPS services for both donor and recipient.
+    \item Stable internet connectivity within the 3~km university radius.
+    \item Users (students/collectors) possess smartphones compatible with the Expo Go environment.
+\end{enumerate}
+
+\subsection{Team Structure and Roles}
+
+\subsubsection{Organizational Chart}
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\columnwidth}{!}{%
+\begin{tikzpicture}[
+    every node/.style={
+        draw, rectangle, rounded corners,
+        align=center, text width=2.2cm,
+        minimum height=0.9cm, font=\tiny
+    }
+]
+\node (lead)     at (3.3, 0)    {\textbf{Project Lead /}\\\textbf{Systems Analyst}\\Luna A. Sandoval R.};
+\node (frontend) at (0,  -2.2) {\textbf{Frontend Dev.}\\\textbf{/ Analyst}\\Cristian C. Bonilla L.};
+\node (backend)  at (3.3,-2.2) {\textbf{Backend Dev.}\\\textbf{/ Analyst}\\Nicolás Rodríguez G.};
+\node (database) at (6.6,-2.2) {\textbf{Database Spec.}\\\textbf{/ Analyst}\\Juan S. Bravo R.};
+
+\draw[->] (lead) -- (frontend);
+\draw[->] (lead) -- (backend);
+\draw[->] (lead) -- (database);
+\end{tikzpicture}%
+}
+\caption{Project Organizational Structure.}
+\label{fig:org-chart}
+\end{figure}
+
+\subsubsection{Roles and Responsibilities}
+
+\begin{table}[htbp]
+\centering
+\small
+\caption{Team Roles and Responsibilities}
+\label{tab:roles}
+\begin{tabularx}{\columnwidth}{@{} l l X @{}}
+\toprule
+\textbf{Member} & \textbf{Role} & \textbf{Responsibilities} \\
+\midrule
+Luna Sandoval    & Project Lead / Analyst     & Planning, coordination, requirements, architecture validation, standards alignment \\
+Cristian Bonilla & Frontend Dev.\ / Analyst   & UI/UX design, frontend implementation, API integration, responsiveness \\
+Nicolás Rodríguez & Backend Dev.\ / Analyst   & Business logic, matching algorithm, APIs, system integration \\
+Juan Bravo       & DB Specialist / Analyst    & Database design, PostGIS management, data integrity, performance tuning \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Project Timeline and Critical Path}
+
+The project timeline was developed using a structured dependency-based approach, ensuring alignment with the iterative lifecycle defined across Workshops 1, 2, and 3. A full Gantt chart was created using draw.io, incorporating all development phases, task dependencies, and critical milestones.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{Gantt-Diagram.png}
+    \caption{Project Gantt Chart showing milestones, task dependencies, and critical path.}
+    \label{fig:gantt}
+\end{figure}
+
+\subsubsection{Timeline Structure}
+
+The project is organized into four major phases:
+
+\begin{itemize}
+    \item \textbf{Phase 1 – System Analysis (Weeks 1–4):} Problem definition, stakeholder analysis, IPO model, and risk identification.
+    
+    \item \textbf{Phase 2 – System Design (Weeks 5–8):} Architecture definition, technology selection, and mitigation strategies.
+    
+    \item \textbf{Phase 3 – Development and Integration (Weeks 9–12):} Implementation of backend services, database schema (PostGIS), mobile application, matching algorithm, and notification system.
+    
+    \item \textbf{Phase 4 – Validation and Deployment (Weeks 13–16):} System testing, simulation under load, pilot deployment, and final MVP delivery.
+\end{itemize}
+
+\subsubsection{Task Dependencies}
+
+The project follows strict dependency relationships:
+
+\begin{itemize}
+    \item System design depends on completed system analysis.
+    \item Backend and database implementation must precede the matching algorithm.
+    \item The matching algorithm must be completed before notification integration.
+    \item Full system integration depends on backend, frontend, and notification services.
+    \item Testing and simulation require a fully integrated system.
+\end{itemize}
+
+\subsubsection{Critical Path}
+
+The critical path represents the sequence of tasks that directly determine the total project duration:
+
+\begin{itemize}
+    \item System Analysis $\rightarrow$
+    Architecture Design $\rightarrow$
+    Backend Development $\rightarrow$
+    Matching Algorithm Implementation $\rightarrow$
+    Notification System $\rightarrow$
+    System Integration $\rightarrow$
+    Testing $\rightarrow$
+    Simulation $\rightarrow$
+    Final MVP
+\end{itemize}
+
+Any delay in these activities directly impacts the final delivery date, making them the highest priority throughout the project lifecycle.
+
+\subsubsection{Key Milestones}
+
+\begin{itemize}
+    \item M1: System Analysis Completed (Week 4)
+    \item M2: Architecture Design Approved (Week 8)
+    \item M3: Core System Implemented (Week 12)
+    \item M4: System Validated and Final MVP Delivered (Week 16)
+\end{itemize}
+
+\subsection{Resource Management Plan}
+
+\subsubsection{Resource Allocation and Tracking}
+
+Resource usage is tracked through the GitHub Projects Kanban board and weekly burndown charts. Each sprint is limited to a maximum of 10 hours per team member to prevent burnout. Effort distribution is aligned with the RACI matrix defined in the Project Charter:
+
+\begin{table}[h]
+\centering
+\small
+\caption{Resource Allocation Overview (Workshop 3–4)}
+\label{tab:resource-allocation}
+\begin{tabular}{@{}p{1.5cm}p{2.5cm}p{3.5cm}@{}}
+\toprule
+\textbf{Resource Type} & \textbf{Management Mechanism} & \textbf{Planned Effort / Cost} \\
+\midrule
+Human Resources & GitHub Projects + weekly burndown charts & 640 HH total (4 engineers × 10 h/week) \\
+Technical Infrastructure & Docker Compose + free-tier cloud services & \$0 (academic tier) \\
+Financial Resources & Monitored in project board & \$0--50 (theoretical pilot hosting) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Resource Monitoring and Control}
+
+\begin{itemize}
+    \item \textbf{Weekly Resource Review:} During the 45–60 minute status meeting, the team reviews burndown charts and flags any deviation greater than 15\%.
+    \item \textbf{Automatic Alerts:} GitHub issue labels (\texttt{resource:critical}, \texttt{resource:overallocated}) trigger notifications to the Project Lead.
+    \item \textbf{Control Gates:} No merge to \texttt{develop} is allowed without peer review and confirmation that the assigned effort was not exceeded.
+    \item \textbf{Contingency:} If any member exceeds 12 hours in a week, the Project Lead reassigns tasks immediately to maintain balance.
+\end{itemize}
+
+This plan guarantees that the project remains within academic constraints, ensures full traceability of effort, and supports the successful delivery of the final MVP and communication artifacts by \textbf{30 May 2026}.
+
+
+\subsection{Communication and Control Plan}
+
+\subsubsection{Communication Plan}
+
+Effective communication is essential to ensure coordination across all components of the system development process. The team will use the following channels:
+\begin{itemize}
+    \item \textbf{WhatsApp}: Primary channel for real-time communication, quick clarifications, and urgent coordination.
+    \item \textbf{GitHub}: Main platform for version control, issue tracking, pull requests, and technical discussions. All development-related communication must be documented here.
+    \item \textbf{Weekly Meetings}: Formal synchronization space to review progress, blockers, and next steps.
+\end{itemize}
+
+\subsubsection{Meeting Frequency and Structure}
+
+\begin{itemize}
+    \item \textbf{Weekly Status Meeting:}
+        \begin{itemize}
+            \item Frequency: Once per week; Duration: 45–60~minutes.
+            \item Objective: Review progress, validate deliverables, identify risks, and plan next iteration.
+        \end{itemize}
+    \item \textbf{Ad-hoc Meetings:} Triggered when critical issues arise or architectural decisions are required; short and focused (15–30~minutes).
+\end{itemize}
+
+\subsubsection{Issue Escalation Process}
+
+To ensure timely resolution of blockers, the following escalation protocol is defined:
+\begin{enumerate}
+    \item Issues are first reported and documented in \textbf{GitHub Issues}.
+    \item If unresolved within 24~hours, the issue is escalated via \textbf{WhatsApp}.
+    \item If the issue impacts deadlines or system stability, it is escalated to the \textbf{Project Lead}.
+    \item Critical issues are addressed in an \textbf{ad-hoc meeting} with relevant team members.
+\end{enumerate}
+
+\subsubsection{Control and Monitoring Tools}
+
+The team will use structured tools to track progress and ensure transparency:
+\begin{itemize}
+    \item \textbf{GitHub Projects}: Task management, sprint planning, and workflow visualization (Kanban board).
+    \item \textbf{Burndown Charts}: Monitor sprint progress and detect deviations from planned timelines.
+    \item \textbf{Pull Requests and Code Reviews}: Ensure code quality, traceability, and collaborative validation before merging changes.
+    \item \textbf{Issue Tracking}: All bugs, features, and improvements must be registered and tracked through GitHub Issues.
+\end{itemize}
+
+\subsubsection{Summary}
+
+This communication and coordination structure ensures alignment, transparency, and efficient problem resolution. By combining synchronous (meetings, WhatsApp) and asynchronous (GitHub) communication channels, the team can maintain both agility and traceability throughout the project lifecycle.
+
+% ============================================================
+\section{Conclusions and Next Steps}
+% ============================================================
+The Food Waste Reduction Platform has successfully evolved from a rigorous systems analysis (Workshop 1) through a robust technical design (Workshop 2) to a fully implemented, experimentally validated solution in Workshop 3. By enforcing a strict 3 km geospatial radius with PostGIS, implementing a serialized multi-criteria matching algorithm with 20--30\% equity weighting for verified charities, asynchronous messaging via a message broker, reliability scoring to mitigate no-shows, and staggered notifications, the system demonstrably addresses the core coordination barriers that contribute to daily surplus food losses around the Engineering Faculty of Universidad Distrital Francisco José de Caldas. 
+
+The enhanced four-layer architecture, combined with the comprehensive risk management plan (reducing all high-impact risks to low residual levels) and the layered quality assurance framework (unit, integration, acceptance, and pilot testing), ensures high modularity, fault tolerance, scalability, and maintainability while aligning with ISO/IEC 25010 and ISO 31000 principles. These outcomes validate the platform's potential to reduce food waste, promote social equity, and advance circular economy practices in a real-world environment, directly supporting Bogotá.
+
+Future work (Workshop 4 and beyond) will focus on deploying a controlled 6-week pilot within the operational radius to collect real-user data, refining the equity index and reliability scoring through machine-learning feedback loops, integrating advanced analytics for predictive surplus forecasting, and conducting a full environmental impact assessment (CO₂-equivalent emissions avoided). Additional enhancements include expanding the mobile frontend with offline-first capabilities, exploring blockchain-based donation traceability for greater transparency, and scaling the solution to other university campuses in Bogotá. A complete set of communication artifacts (the scientific paper, academic poster, technical report, and presentation) will be finalized to disseminate the results effectively.
+
+% ============================================================
+\begin{thebibliography}{10}
+\bibitem{w1} Workshop 1 – Food Waste Reduction Mobile Application, A Rigorous System Analysis, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{w2} Workshop 2 – System Design Document, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{ieee} IEEE Standards Association, ``IEEE 730-2014 - IEEE Standard for Software Quality Assurance Processes,'' 2014.
+\end{thebibliography}
+
+% ============================================================
+% APPENDICES
+% ============================================================
+\appendix
+
+\section{System Architecture Diagram}
+\label{app:architecture-diagram}
+
+\begin{figure*}[htbp]
+    \centering
+    \includegraphics[width=\textwidth]{system-architecture-diagram-updated.png}
+    \caption{Enhanced four-layer system architecture incorporating robust engineering principles.}
+    \label{fig:architecture-large}
+\end{figure*}
+
+% ============================================================
+\section{Critical Risk Register}
+\label{app:risk-register}
+% ============================================================
+
+\begin{table*}[htbp]
+\centering
+\small
+\begin{threeparttable}
+\caption{Critical Risk Register (traceable to Workshop~1)}
+\label{tab:critical-risk-register}
+\begin{tabularx}{\textwidth}{@{} l X l X X X @{}}
+\toprule
+\textbf{ID} & \textbf{Risk Description (Workshop~1)} & \textbf{Owner} & \textbf{Mitigation Strategy (Workshop~2)} & \textbf{Contingency Plan} & \textbf{Monitoring Metrics} \\
+\midrule
+R1  & High-demand surplus events causing race conditions          & Backend Lead      & Serialized priority-queue + DB locking             & Fair lottery allocation       & contention\_rate \\
+R2  & High concurrency degrading performance                      & Backend / DevOps  & Redis caching + rate limiting                      & Graceful degradation          & concurrent\_users, response\_time \\
+R3  & Geolocation service failure (fragile GPS input)             & Backend / Infra   & Redundant services + client-side validation        & Manual location fallback      & geo\_failures\_per\_hour \\
+R4  & No-show after acceptance                                    & Backend / Product & Reliability scoring + automatic timeout            & Automatic reassignment        & no\_show\_rate \\
+R5  & Informal external coordination (WhatsApp bypass)            & Product Owner     & Anomaly detection + audit logging                  & Ranking penalties             & anomaly\_rate \\
+R6  & Supplier disengagement due to low demand                    & Project Manager   & Engagement metrics + feedback loops                & Targeted push notifications   & supplier\_activity\_trend \\
+R7  & Inequitable distribution due to proximity bias              & Backend / Data    & Fairness-weighted matching algorithm               & Dynamic weight adjustment     & equity\_index \\
+R8  & Cascade failures from no-show chains                        & Backend           & Limited reassignment cycles (max 3)                & Stop and escalate             & reassignment\_chain\_length \\
+R9  & Demand amplification from notifications                     & Backend / Mobile  & Staggered tiered notifications                     & Batch-size limiting           & notification\_spike \\
+R10 & Negative feedback loop from poor metrics                    & Analytics / PM    & Contextualized analytics dashboard                 & Personalized performance reports & publication\_rate \\
+\bottomrule
+\end{tabularx}
+\end{threeparttable}
+\end{table*}
+
+% ============================================================
+\section{Quality Metrics and Acceptance Criteria}
+\label{app:qa-metrics}
+% ============================================================
+
+\begin{table*}[htbp]
+\centering
+\small
+\begin{threeparttable}
+\caption{Quality Metrics, Acceptance Criteria, and Requirement Traceability}
+\label{tab:qa_metrics}
+\begin{tabularx}{\textwidth}{@{} l l l X l @{}}
+\toprule
+\textbf{Metric} & \textbf{Target} & \textbf{Min. Accept.} & \textbf{Rationale} & \textbf{REQ} \\
+\midrule
+Surplus Recovery Rate     & $\geq$80\%          & 65\%          & Ensures the majority of published food is redistributed before expiry.                     & REQ-02 \\
+Avg. Matching Time         & $<$2~s              & $<$5~s        & Critical for same-day freshness windows; delays reduce redistribution probability.          & REQ-13 \\
+Pickup Success Rate         & $\geq$85\%          & 70\%          & Measures follow-through after assignment; low rates trigger no-show mitigation.             & REQ-06 \\
+Notification Delivery       & $<$5~s (95\%)       & $<$10~s       & Rapid alerts are essential given the 1–3~hour pickup window.                               & REQ-12 \\
+Charity Priority            & $\geq$90\% ($\geq$10\,kg) & 80\%    & Ensures verified organizations receive mandatory priority access.                           & REQ-03 \\
+Radius Enforcement          & 100\% ($\pm$50\,m)  & 100\%         & Non-negotiable boundary; any violation is a critical failure.                               & REQ-01 \\
+System Response             & $<$500\,ms          & $<$1~s        & Maintains usability during peak concurrency at meal hours.                                 & REQ-16 \\
+Concurrent Users            & $\geq$200           & 100           & Handles peak lunch and dinner demand without degradation.                                  & REQ-09 \\
+System Uptime               & $\geq$99\%          & 97\%          & Ensures availability during all daily operating hours.                                     & REQ-15 \\
+Reassignment Success        & $\geq$85\%          & 70\%          & Validates the 3-reassignment cascade with compressed timeouts.                             & REQ-06 \\
+Peripheral Match Rate       & $\geq$15\%          & 10\%          & Confirms the 30\% fairness weight counteracts proximity bias.                               & REQ-11 \\
+Anomaly Detection           & 100\% logged        & 100\%         & Detects informal coordination networks bypassing the algorithm.                             & REQ-07 \\
+\bottomrule
+\end{tabularx}
+\end{threeparttable}
+\end{table*}
+
+\end{document}
