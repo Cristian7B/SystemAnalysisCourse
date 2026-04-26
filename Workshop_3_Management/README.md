@@ -1,4 +1,4 @@
-# Workshop 2 – Systems Design
+# Workshop 3 – Robust System Design and Project Management
 
 **Food Waste Reduction Platform**  
 *Real-Time Surplus Redistribution Mobile Application*
