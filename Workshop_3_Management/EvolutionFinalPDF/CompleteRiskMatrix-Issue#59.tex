@@ -1,0 +1,147 @@
+\documentclass[9pt,conference]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,english]{babel}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{threeparttable}
+\usepackage{float}
+
+\title{Food Waste Reduction Platform: Robust System Design and Project Management}
+
+\author{
+Luna Alejandra Sandoval Rodríguez \\
+\textit{Project Lead \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020053
+\and
+Cristian Camilo Bonilla Lizarazo \\
+\textit{Frontend Developer \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020015
+\and
+Nicolás Rodríguez Granados \\
+\textit{Backend Developer \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020037
+\and
+Juan Sebastián Bravo Rojas \\
+\textit{Database Specialist \& Systems Analyst} \\
+Universidad Distrital Francisco José de Caldas \\
+Bogotá, Colombia \\
+20241020004
+}
+
+\begin{document}
+
+\maketitle
+
+\section{Risk Management Plan}
+
+The Risk Management Plan follows a structured, iterative methodology aligned with PMBOK and ISO 31000 standards, ensuring systematic identification, analysis, response planning, and continuous monitoring throughout the project lifecycle. This plan is fully traceable to the 17 measurable design requirements and the 10 critical risks/sensitivities documented in Workshop 1 and explicitly addressed by the architectural patterns of Workshop 2.
+
+\subsubsection{Risk Management Approach}
+The approach consists of four integrated stages:
+\begin{itemize}
+    \item \textbf{Risk Identification:} Derived directly from the critical sensitivities, emergent behaviors, and chaotic dynamics identified in Workshop 1 systems analysis.
+    \item \textbf{Risk Analysis:} Qualitative and quantitative evaluation of probability and impact.
+    \item \textbf{Risk Response Planning:} Definition of proactive mitigation strategies and contingency actions.
+    \item \textbf{Risk Monitoring and Control:} Real-time tracking through KPIs, dashboards, and automated alerts embedded in the Analytics Layer (Workshop 2).
+\end{itemize}
+
+A hybrid strategy combining proactive architectural controls (Workshop 2) and reactive contingency measures was adopted, which is essential for a real-time, high-concurrency platform operating under strict geospatial and temporal constraints.
+
+\subsubsection{Risk Register}
+Table~II presents the ten critical risks identified in Workshop 1, their assigned owners (per the RACI matrix), mitigation strategies implemented in Workshop 2, contingency plans, and monitoring metrics.
+See Table \ref{critical-risk-register}
+
+
+\begin{table*}[h]
+\centering
+\small
+\begin{threeparttable}
+\caption{Critical Risk Register (traceable to Workshop 1)}
+\label{critical-risk-register}
+\begin{tabularx}{\textwidth}{@{} l X l X X X @{}}
+\toprule
+\textbf{ID} & \textbf{Risk Description (Workshop 1)} & \textbf{Owner} & \textbf{Mitigation Strategy (Workshop 2)} & \textbf{Contingency Plan} & \textbf{Monitoring Metrics} \\
+\midrule
+R1 & High-demand surplus events causing race conditions & Backend Lead & Serialized priority-queue + DB locking & Fair lottery allocation & contention\_rate \\
+R2 & High concurrency degrading performance & Backend / DevOps & Redis caching + rate limiting & Graceful degradation & concurrent\_users, response\_time \\
+R3 & Geolocation service failure (fragile GPS input) & Backend / Infra & Redundant services + client-side validation & Manual location fallback & geo\_failures\_per\_hour \\
+R4 & No-show after acceptance & Backend / Product & Reliability scoring + automatic timeout & Automatic reassignment & no\_show\_rate \\
+R5 & Informal external coordination (WhatsApp bypass) & Product Owner & Anomaly detection + audit logging & Ranking penalties & anomaly\_rate \\
+R6 & Supplier disengagement due to low demand & Project Manager & Engagement metrics + feedback loops & Targeted push notifications & supplier\_activity\_trend \\
+R7 & Inequitable distribution due to proximity bias & Backend / Data & Fairness-weighted matching algorithm & Dynamic weight adjustment & equity\_index \\
+R8 & Cascade failures from no-show chains & Backend & Limited reassignment cycles (max 3) & Stop and escalate & reassignment\_chain\_length \\
+R9 & Demand amplification from notifications & Backend / Mobile & Staggered tiered notifications & Batch-size limiting & notification\_spike \\
+R10 & Negative feedback loop from poor metrics & Analytics / PM & Contextualized analytics dashboard & Personalized performance reports & publication\_rate \\
+\bottomrule
+\end{tabularx}
+\end{threeparttable}
+\end{table*}
+
+\subsubsection{Risk Matrix}
+The probability-impact relationship of the ten risks is summarized below (updated after Workshop 3 implementation and testing).
+See Table \ref{risk}
+
+\begin{table}[h]
+\centering
+\small
+\caption{Risk Probability vs Impact Matrix (post-Workshop 3)}
+\label{risk}
+\begin{tabular}{c|c|c|c}
+\toprule
+\textbf{Impact \textbackslash{} Probability} & \textbf{Low} & \textbf{Medium} & \textbf{High} \\
+\midrule
+\textbf{High} & R5, R7 & R6, R10 & R1, R2, R3, R4, R8, R9 \\
+\textbf{Medium} & -- & R5 & R6 \\
+\textbf{Low} & -- & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Monitoring and Control Strategy}
+Continuous risk control is embedded in the platform’s Analytics Layer (Workshop 2):
+\begin{itemize}
+    \item Real-time dashboards visualizing KPIs and risk indicators.
+    \item Centralized logging of all system events.
+    \item Automated alerts triggered when predefined thresholds are exceeded.
+\end{itemize}
+
+Associated monitoring KPIs:
+\begin{itemize}
+    \item No-show rate $\leq 15\%$
+    \item Notification delivery time $< 5$ seconds
+    \item Matching latency $< 2$ seconds
+    \item Unclaimed surplus rate $< 20\%$
+    \item System uptime $\geq 99\%$
+\end{itemize}
+
+\subsubsection{Risk Response Strategy}
+The project applies standard response strategies:
+\begin{itemize}
+    \item \textbf{Avoidance:} Critical technical risks (e.g., R1 – race conditions) via architectural serialization.
+    \item \textbf{Mitigation:} Most operational risks (R2–R9) through Workshop 2 design patterns.
+    \item \textbf{Acceptance:} Behavioral risks that cannot be fully eliminated (R5, partially R6), managed via monitoring.
+\end{itemize}
+
+\subsubsection{Systemic Risk Perspective}
+The identified risks form a dynamic system with feedback loops (no-show cascades, notification-driven demand amplification, and behavioral participation cycles). By integrating risk controls directly into the four-layer architecture (Workshop 2) and maintaining closed feedback loops (daily stand-ups, post-experiment retrospectives, and GitHub issue tracking), the project achieves high resilience and ensures long-term sustainability of the Food Waste Reduction Platform.
+
+
+\begin{thebibliography}{10}
+\bibitem{w1} Workshop 1 – Food Waste Reduction Mobile Application, A Rigorous System Analysis, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{w2} Workshop 2 – System Design Document, Universidad Distrital Francisco José de Caldas, 2026.
+\bibitem{ieee} IEEE Standards Association, ``IEEE 730-2014 - IEEE Standard for Software Quality Assurance Processes,'' 2014.
+\end{thebibliography}
+
+\end{document}
