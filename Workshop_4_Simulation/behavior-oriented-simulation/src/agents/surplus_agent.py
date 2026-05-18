@@ -31,7 +31,7 @@ class SurplusAgent(mesa.Agent):
     # Transitions the surplus from 'published' to 'assigned'
     # Returns bool: True if the assignment succeeded, False if surplus was not in 'pubished' state.
     def assign(self, recipient_id, tick):
-        if self.status != "publised":
+        if self.status != "published":
             return False
         
         self.status = "assigned"
@@ -83,7 +83,8 @@ class SurplusAgent(mesa.Agent):
     # Retuns float: Eucliden distance in km between self.location and location
     def distance_to(self, location):
         return math.sqrt(
-            (self.location[0] - location[0] ** 2) + (self.location[1] - location[1] ** 2)
+            (self.location[0] - location[0]) ** 2 
+            + (self.location[1] - location[1]) ** 2
         )
         
     # Executed once per simulation tick by the Mesa scheduler.

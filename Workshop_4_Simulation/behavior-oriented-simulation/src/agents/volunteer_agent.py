@@ -50,13 +50,14 @@ class VolunteerAgent(mesa.Agent):
         surplus_id = self.current_mission.unique_id
         tick = self.model.schedule.time
 
+        self.current_mission.collect(self.current_mission.kg_available, tick)
         self.total_assists += 1
         self.update_reliability(successful=True)
         self._log_mission(surplus_id, tick, outcome="completed")
 
         self.current_mission = None
         self.is_available = True
-        
+            
     # Record a mission event to the history log
     def _log_mission(self, surplus_id, tick, outcome):
         self.mission_history.append(
@@ -74,17 +75,4 @@ class VolunteerAgent(mesa.Agent):
     
     # Executed once per simulation tick by the Mesa scheduler.
     def step(self):
-        if self.current_mission is None:
-            return
-
-        if self.decide_mission():
-            self.complete_mission()
-        else:
-            surplus_id = self.current_mission.unique_id
-            tick = self.model.schedule.time
-
-            self.update_reliability(successful=False)
-            self._log_mission(surplus_id, tick, outcome="no_show")
-
-            self.current_mission = None
-            self.is_available = True
+        pass

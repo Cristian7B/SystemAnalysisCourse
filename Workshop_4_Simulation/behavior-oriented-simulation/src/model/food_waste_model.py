@@ -8,11 +8,12 @@ from src.agents.beneficiary_agent import BeneficiaryAgent
 from src.agents.charity_agent import CharityAgent
 from src.agents.volunteer_agent import VolunteerAgent
 from src.agents.surplus_agent import SurplusAgent
-
-GRID_SIZE_KM = 3.0
-TICKS_PER_HOUR = 6
-PUBLICATION_WINDOW_TICKS = 24
-COLLECTION_WINDOW_TICKS = 18
+from src.model.constants import (
+    GRID_SIZE_KM,
+    TICKS_PER_HOUR,
+    PUBLICATION_WINDOW_TICKS,
+    COLLECTION_WINDOW_TICKS,
+)
 
 class FoodWasteModel(mesa.Model):
     # Main Agent-Based Model for the Food Waste Reduction Platform.
@@ -46,6 +47,8 @@ class FoodWasteModel(mesa.Model):
         self.charities = []
         self.volunteers = []
         self._initialize_agents()
+        from src.model.matching_engine import MatchingEngine
+        self.matching_engine = MatchingEngine(self)
         
     # Returns the next available unique agent ID and increments the internal counter
     def _get_next_id(self):
@@ -97,7 +100,7 @@ class FoodWasteModel(mesa.Model):
             agent = VolunteerAgent(
                 unique_id=self._get_next_id(),
                 model=self,
-                name=f"Colunteer_{i + 1}",
+                name=f"Volunteer_{i + 1}",
                 location=self._random_location(),
             )
             self.volunteers.append(agent)
@@ -198,6 +201,13 @@ class FoodWasteModel(mesa.Model):
             "active_surpluses": len(self.active_surpluses),
             "recovery_rate": round(recovery_rate, 4),
             "avg_reassignment_count": round(avg_reassignment, 4),
+            "total_assignments": len(self.matching_engine.assignment_log),
+            "pickup_completion_rate": round(
+                total_collected / len(self.matching_engine.assignment_log)
+                if len(self.matching_engine.assignment_log) > 0
+                else 0.0,
+                4,
+            ),
         }
         
     # Advances the simulation by one tick.
@@ -222,10 +232,12 @@ class FoodWasteModel(mesa.Model):
         if ticks_into_day == TICKS_PER_HOUR * 20:
             self._open_publication_window()
 
+        self._collect_published_surpluses()
+
+        self.matching_engine.run(self.current_tick)
+
         self.schedule.step()
 
-        self._collect_published_surpluses()
-         
         if (
             self.publication_open
             and self.publication_opened_at is not None

@@ -52,17 +52,4 @@ class BeneficiaryAgent(mesa.Agent):
     
     # Executed once per simulation tick by Mesa scheduler.
     def step(self):
-        if self.current_assignment is None:
-            return
-        
-        surplus_id = self.current_assignment.unique_id
-        tick = self.model.schedule.time
-        
-        if self.decide_pickup():
-            self.update_reliability(successful=True)
-            self._log_assignment(surplus_id, tick, outcome="pickup")
-        else:
-            self.update_reliability(successful=False)
-            self._log_assignment(surplus_id, tick, outcome="no_show")
-        
-        self.current_assignment = None
+        pass
