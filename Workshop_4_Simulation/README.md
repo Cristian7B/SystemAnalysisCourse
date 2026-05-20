@@ -39,25 +39,37 @@ The simulations provide empirical evidence to validate design decisions, evaluat
 
 ## Status
 **In Progress** – Targeted delivery: **22 May 2026**
-
 ## Repository Structure
+
+```text
 Workshop_4_Simulation/
-├── src/                    # Source code of both simulations
-│   ├── process_simulation.py
-│   ├── behavior_simulation.py
-│   └── matching_algorithm.py
-├── data/                   # Input parameters and configurations
-├── experiments/            # Scenario definitions and execution scripts
-├── results/                # Output data, logs, and plots
-│   └── plots/
-├── notebooks/              # Exploratory notebooks (SimPy & Mesa)
-├── docs/                   # Simulation Report and additional documentation
+├── behavior-oriented-simulation/
+│   ├── docs/
+│   │   ├── figures/                        # Visuals of results
+│   │   └── Behavior_Oriented_Simulation.pdf
+│   │
+│   ├── experiments/
+│   │   ├── results/
+│   │   ├── scenarios/
+│   │   └── run_scenario.py
+│   │
+│   ├── notebooks/
+│   │   └── analysis.ipynb
+│   │
+│   ├── src/
+│   │   ├── agents/
+│   │   ├── metrics/
+│   │   ├── model/
+│   │   └── notification/
+│   │
+│   ├── tests/
+│   ├── README.md
+│   └── requirements.txt
+│
+├── process-oriented-simulation/
+├── Workshop_4.pdf
 └── README.md
-
-
-## Related Files
-- ...
-
+```
 
 **Last updated:** May 5, 2026
 
