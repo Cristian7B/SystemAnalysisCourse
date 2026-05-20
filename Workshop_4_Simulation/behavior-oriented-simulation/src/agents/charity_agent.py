@@ -11,6 +11,8 @@ class CharityAgent(mesa.Agent):
         location,
         priority_weight=0.25,
         capacity_kg=30.0,
+        no_show_min=0.05,
+        no_show_max=0.15,
     ):
         super().__init__(unique_id, model)
         self.name = name
@@ -21,7 +23,7 @@ class CharityAgent(mesa.Agent):
         self.priority_weight = priority_weight
         self.capacity_kg = capacity_kg
         self.current_assignment = None
-        self.no_show_probability = random.uniform(0.05, 0.15)
+        self.no_show_probability = random.uniform(no_show_min, no_show_max)
         self.total_pickups = 0
         self.total_no_shows = 0
         self.assignment_history = []

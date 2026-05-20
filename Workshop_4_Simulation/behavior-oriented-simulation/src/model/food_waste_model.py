@@ -24,6 +24,12 @@ class FoodWasteModel(mesa.Model):
         n_beneficiaries=40,
         n_charities=5,
         n_volunteers=8,
+        no_show_min=0.10,
+        no_show_max=0.25,
+        surplus_kg_min=5.0,
+        surplus_kg_max=15.0,
+        max_concurrent_assignments=None,
+        enable_matching_engine=True,
         seed=None,
     ):
         super().__init__()
@@ -35,6 +41,11 @@ class FoodWasteModel(mesa.Model):
         self.n_beneficiaries = n_beneficiaries
         self.n_charities = n_charities
         self.n_volunteers = n_volunteers
+        self.no_show_min = no_show_min
+        self.no_show_max = no_show_max
+        self.surplus_kg_min = surplus_kg_min
+        self.surplus_kg_max = surplus_kg_max
+        self.enable_matching_engine = enable_matching_engine
         self.schedule = mesa.time.RandomActivation(self)
         self.current_tick = 0
         self.publication_open = False
@@ -49,6 +60,7 @@ class FoodWasteModel(mesa.Model):
         self._initialize_agents()
         from src.model.matching_engine import MatchingEngine
         self.matching_engine = MatchingEngine(self)
+        self.max_concurrent_assignments = max_concurrent_assignments
         
     # Returns the next available unique agent ID and increments the internal counter
     def _get_next_id(self):
@@ -60,8 +72,10 @@ class FoodWasteModel(mesa.Model):
     # The origin (0, 0) represents the Faculty of Engineering (UD). The grid is a square approximation of the 3 km radius boundary specified in the simulation document.
     # Retunrs tuple: Random (x,y) coordinates in km.
     def _random_location(self):
-        x = random.uniform(-GRID_SIZE_KM, GRID_SIZE_KM)
-        y = random.uniform(-GRID_SIZE_KM, GRID_SIZE_KM)
+        x = random.gauss(0, 1.0)
+        y = random.gauss(0, 1.0)
+        x = max(-GRID_SIZE_KM, min(GRID_SIZE_KM, x))
+        y = max(-GRID_SIZE_KM, min(GRID_SIZE_KM, y))
         return (x, y)
     
     # Creates and registres all initial agents with the Mesa scheduler
@@ -72,6 +86,8 @@ class FoodWasteModel(mesa.Model):
                 model=self,
                 name=f"Donor_{i + 1}",
                 location=self._random_location(),
+                surplus_kg_min=self.surplus_kg_min,
+                surplus_kg_max=self.surplus_kg_max,
             )
             self.donors.append(agent)
             self.schedule.add(agent)
@@ -82,6 +98,8 @@ class FoodWasteModel(mesa.Model):
                 model=self,
                 name=f"Beneficiary_{i + 1}",
                 location=self._random_location(),
+                no_show_min=self.no_show_min,
+                no_show_max=self.no_show_max,
             )
             self.beneficiaries.append(agent)
             self.schedule.add(agent)
@@ -92,6 +110,8 @@ class FoodWasteModel(mesa.Model):
                 model=self,
                 name=f"Charity_{i + 1}",
                 location=self._random_location(),
+                no_show_min=self.no_show_min,
+                no_show_max=self.no_show_max,
             )
             self.charities.append(agent)
             self.schedule.add(agent)
@@ -102,6 +122,8 @@ class FoodWasteModel(mesa.Model):
                 model=self,
                 name=f"Volunteer_{i + 1}",
                 location=self._random_location(),
+                no_show_min=self.no_show_min,
+                no_show_max=self.no_show_max,
             )
             self.volunteers.append(agent)
             self.schedule.add(agent)
@@ -140,17 +162,17 @@ class FoodWasteModel(mesa.Model):
     
     # Scans all donors and creates SurplusAgents for any new publications that occurred during the current tick
     def _collect_published_surpluses(self):
-        published_donor_ids_this_tick = {
-            s.donor_id
-            for s in self.active_surpluses
-            if s.published_at_tick == self.current_tick
-        }
-
         for donor in self.donors:
-            if (
-                donor.published_today
-                and donor.unique_id not in published_donor_ids_this_tick
-            ):
+            if not donor.published_today:
+                continue
+
+            already_created = any(
+                s.donor_id == donor.unique_id
+                and s.published_at_tick >= self.publication_opened_at
+                for s in self.all_surpluses
+            )
+
+            if not already_created:
                 kg = random.uniform(donor.surplus_kg_min, donor.surplus_kg_max)
                 self._create_surplus_from_donor(donor, kg)
     
@@ -234,7 +256,8 @@ class FoodWasteModel(mesa.Model):
 
         self._collect_published_surpluses()
 
-        self.matching_engine.run(self.current_tick)
+        if self.enable_matching_engine:
+            self.matching_engine.run(self.current_tick)
 
         self.schedule.step()
 

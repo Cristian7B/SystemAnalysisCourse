@@ -11,6 +11,8 @@ class VolunteerAgent(mesa.Agent):
         name,
         location,
         max_distance_km=3.0,
+        no_show_min=0.05,
+        no_show_max=0.15
     ):
         super().__init__(unique_id, model)
         self.name = name
@@ -20,7 +22,7 @@ class VolunteerAgent(mesa.Agent):
         self.is_available = True
         self.max_distance_km = max_distance_km
         self.current_mission = None
-        self.no_show_probability = random.uniform(0.05, 0.15)
+        self.no_show_probability = random.uniform(no_show_min, no_show_max)
         self.total_assists = 0
         self.total_no_shows = 0
         self.mission_history = []

@@ -178,6 +178,8 @@ class TestFoodWasteModelMetrics(unittest.TestCase):
             "active_surpluses",
             "recovery_rate",
             "avg_reassignment_count",
+            "total_assignments",
+            "pickup_completion_rate",
         }
         self.assertEqual(set(metrics.keys()), expected_keys)
 
@@ -190,15 +192,31 @@ class TestFoodWasteModelMetrics(unittest.TestCase):
         self.assertEqual(metrics["recovery_rate"], 0.0)
 
     def test_recovery_rate_is_zero_without_matching_engine(self):
+        model = FoodWasteModel(
+            n_donors=3,
+            n_beneficiaries=10,
+            n_charities=2,
+            n_volunteers=3,
+            enable_matching_engine=False,
+            seed=42,
+        )
         for _ in range(200):
-            self.model.step()
-        metrics = self.model.get_metrics()
+            model.step()
+        metrics = model.get_metrics()
         self.assertEqual(metrics["recovery_rate"], 0.0)
 
     def test_total_expired_grows_over_time(self):
+        model = FoodWasteModel(
+            n_donors=3,
+            n_beneficiaries=10,
+            n_charities=2,
+            n_volunteers=3,
+            enable_matching_engine=False,
+            seed=42,
+        )
         for _ in range(200):
-            self.model.step()
-        metrics = self.model.get_metrics()
+            model.step()
+        metrics = model.get_metrics()
         self.assertGreater(metrics["total_expired"], 0)
 
     def test_total_published_grows_over_time(self):

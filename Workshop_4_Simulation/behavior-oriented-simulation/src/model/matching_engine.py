@@ -218,9 +218,18 @@ class MatchingEngine:
     def run(self, tick):
         self._process_collections(tick)
 
+        current_assigned = sum(
+            1 for s in self.model.active_surpluses
+            if s.status == "assigned"
+        )
+
         for surplus in list(self.model.active_surpluses):
             if surplus.status != "published":
                 continue
+
+            max_cap = self.model.max_concurrent_assignments
+            if max_cap is not None and current_assigned >= max_cap:
+                break
 
             active_radius = self._determine_active_radius(surplus, tick)
             candidates = self._get_eligible_recipients(surplus, active_radius)
@@ -229,5 +238,6 @@ class MatchingEngine:
             if best is not None:
                 ring = self._get_ring_number(active_radius)
                 self._assign(surplus, best, tick, ring)
+                current_assigned += 1
 
         self._handle_expired_surpluses(tick)

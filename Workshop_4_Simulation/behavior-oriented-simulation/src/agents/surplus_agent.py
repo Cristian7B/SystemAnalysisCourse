@@ -52,17 +52,18 @@ class SurplusAgent(mesa.Agent):
     
     # Transitions the surplus to 'expired' state
     # Returns bool: True if expiraction succeeded, False if surplus was alredy collected or in an invalid state for expiration
-    def expire(self, trick):
+    def expire(self, tick):
         if self.status not in {"published", "assigned"}:
             return False
         
         self.status = "expired"
         return True
 
-    # Resets an expired surplus back to 'published' for a new assignment attempt by the matching engine.
-    # Returns bool: True if reassignment succeeded, False if surplus was not in 'expired' state.    
+    # Resets an expired or assigned surplus back to 'published' for a new assignment attempt by the matching engine.
+    # Called when: (1) a no-show occurs during assigned state, or (2) a surplus expires and needs reassignment.
+    # Returns bool: True if reassignment succeeded, False if surplus was not in 'assigned' or 'expired' state.    
     def reassign(self, tick):
-        if self.status != "expired":
+        if self.status not in {"assigned", "expired"}:
             return False
         
         self.status = "published"
@@ -92,7 +93,7 @@ class SurplusAgent(mesa.Agent):
         if self.status in {"collected", "expired"}:
             return
         
-        current_tick = self.model.schedule.time
+        current_tick = self.model.current_tick
         
         if self.is_expired(current_tick):
             self.expire(current_tick)

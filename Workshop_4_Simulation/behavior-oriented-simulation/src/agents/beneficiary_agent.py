@@ -9,6 +9,8 @@ class BeneficiaryAgent(mesa.Agent):
         model,
         name,
         location,
+        no_show_min=0.10,
+        no_show_max=0.25,
     ):
         super().__init__(unique_id, model)
         self.name = name
@@ -16,7 +18,7 @@ class BeneficiaryAgent(mesa.Agent):
         self.reliability_score = 50.0
         self.is_active = True
         self.current_assignment = None
-        self.no_show_probability = random.uniform(0.10, 0.25)
+        self.no_show_probability = random.uniform(no_show_min, no_show_max)
         self.total_pickups = 0
         self.total_no_shows = 0
         self.assignment_history = []
