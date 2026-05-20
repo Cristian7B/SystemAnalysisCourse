@@ -1,0 +1,25 @@
+scenario_name: high_adoption
+description: Peak demand stress test with high concurrency
+n_runs: 30
+n_ticks: 864
+n_donors: 20
+n_beneficiaries: 50
+n_charities: 8
+n_volunteers: 12
+operational:
+  max_concurrent_assignments: 15
+matching:
+  weight_proximity: 0.4
+  weight_reliability: 0.2
+  weight_charity: 0.4
+  radius_ring_1: 0.5
+  radius_ring_2: 1.0
+  radius_ring_3: 3.0
+  delay_ring_1: 2
+  delay_ring_2: 4
+  max_reassignment_attempts: 3
+stochastic:
+  no_show_probability_min: 0.10
+  no_show_probability_max: 0.25
+  surplus_kg_min: 5.0
+  surplus_kg_max: 15.0
