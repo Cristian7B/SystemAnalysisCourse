@@ -44,6 +44,11 @@ class MetricsCollector:
 
         # Queue monitoring (sampled every minute)
         self.queue_length_samples: List[Tuple[float, int]] = []  # (time_min, length)
+ 
+        # Active lifecycle counter — incremented when a surplus enters lifecycle,
+        # decremented when it reaches a terminal state (PICKED_UP or EXPIRED).
+        # Sampled by _queue_monitor to produce the "active surpluses" (queue depth) KPI.
+        self.active_lifecycles: int = 0
 
         # Notification throughput
         self.notification_dispatch_times: List[float] = []   # sim time in minutes
@@ -100,32 +105,34 @@ class MetricsCollector:
         )
 
         co2_avoided = self.kg_collected * 2.5
+        throughput_per_hour = self.successful_pickups / 15.0   # 15-hour window
 
         return {
             # PRIMARY KPIs (targets in parentheses)
-            "recovery_rate":              recovery_rate,          # ≥ 0.80
-            "pickup_completion_rate":     pickup_completion,      # ≥ 0.85
-            "avg_matching_latency_s":     avg_latency_s,          # < 2 s
-            "max_matching_latency_s":     max_latency_s,
-            "charity_priority_compliance": charity_priority,      # ≥ 0.90
-            "peripheral_match_rate":      peripheral_rate,        # ≥ 0.15
+            "recovery_rate":           recovery_rate,      # ≥ 0.80
+            "pickup_completion_rate":  pickup_completion,  # ≥ 0.85
+            "avg_matching_latency_s":  avg_latency_s,      # < 2 s
+            "max_matching_latency_s":  max_latency_s,
+            "charity_priority_rate":   charity_priority,   # ≥ 0.90  (REQ-03/04)
+            "peripheral_match_rate":   peripheral_rate,    # ≥ 0.15  (REQ-11)
             # PROCESS-ORIENTED KPIs
-            "engine_utilization":         engine_utilization,
-            "avg_queue_length_peak":      avg_queue_peak,
-            "max_queue_length_peak":      max_queue_peak,
-            "avg_queue_length_overall":   avg_queue_overall,
+            "engine_utilization":      engine_utilization,
+            "avg_queue_length":        avg_queue_peak,     # mean at peak hours
+            "max_queue_length":        max_queue_peak,     # peak observed
+            "avg_queue_length_overall": avg_queue_overall,
+            "throughput_per_hour":     throughput_per_hour,  # completions / sim-hour
             "avg_notification_throughput_per_h": throughput_per_h,
-            "avg_reassignment_chain":     avg_reassign,
-            "max_reassignment_chain":     max_reassign,
+            "avg_reassignment_chain":  avg_reassign,
+            "max_reassignment_chain":  max_reassign,
             # IMPACT KPIs
-            "co2_avoided_kg":             co2_avoided,
-            "kg_published":               self.kg_published,
-            "kg_collected":               self.kg_collected,
+            "co2_avoided_kg":          co2_avoided,
+            "kg_published":            self.kg_published,
+            "kg_collected":            self.kg_collected,
             # COUNTS (useful for debugging)
-            "n_surpluses":                float(self.successful_pickups + self.expired_count),
-            "successful_pickups":         float(self.successful_pickups),
-            "accepted_count":             float(self.accepted_count),
-            "expired_count":              float(self.expired_count),
+            "n_surpluses":             float(self.successful_pickups + self.expired_count),
+            "successful_pickups":      float(self.successful_pickups),
+            "accepted_count":          float(self.accepted_count),
+            "expired_count":           float(self.expired_count),
         }
 
 

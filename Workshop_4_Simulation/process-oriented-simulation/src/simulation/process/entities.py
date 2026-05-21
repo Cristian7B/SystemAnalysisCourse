@@ -1,10 +1,5 @@
 """
 entities.py — Core domain objects for the Food Waste Reduction Platform simulation.
-
-Surplus state machine:
-    POSTED → IN_QUEUE → ASSIGNED → PICKED_UP
-                      ↘ NO_SHOW (15-min timeout) → IN_QUEUE (retry ≤ 3)
-                                                 ↘ EXPIRED (retry ≥ 3)
 """
 
 from __future__ import annotations
@@ -34,6 +29,7 @@ class StateTransition:
     state:            str             # SurplusState value
     assigned_user_id: Optional[int]
     kg:               float
+    retry_count:      int = 0         # surplus.retry_count at transition time
 
 
 # ── Core entities ──────────────────────────────────────────────────────────────
@@ -63,6 +59,7 @@ class Surplus:
                 state=state.value,
                 assigned_user_id=user_id,
                 kg=self.kg,
+                retry_count=self.retry_count,
             )
         )
 
@@ -81,6 +78,7 @@ class Recipient:
     x:                float
     y:                float
     reliability_score: float   # 0–100; +1 per pickup, -2 per no-show
+    no_show_prob:      float   # sampled from scenario [no_show_min, no_show_max]
     is_charity:        bool
     tier:              int     # 1=≤0.5 km, 2=≤1 km, 3=≤3 km  (from origin)
     dist_from_center:  float   # km from origin — used for peripheral check
@@ -96,6 +94,20 @@ class Recipient:
 def euclidean_distance_km(ax: float, ay: float, bx: float, by: float) -> float:
     """Euclidean distance in km between two (x, y) coordinate pairs."""
     return math.sqrt((ax - bx) ** 2 + (ay - by) ** 2)
+
+
+def distance_tier(dist_km: float) -> int:
+    """Map a distance from the platform centre to its notification / scoring tier.
+
+    Tier 1: ≤ 0.5 km  (inner zone)
+    Tier 2: ≤ 1.0 km  (mid zone)
+    Tier 3: ≤ 3.0 km  (outer zone)
+    """
+    if dist_km <= 0.5:
+        return 1
+    elif dist_km <= 1.0:
+        return 2
+    return 3
 
 
 def spatial_check(donor: Donor, recipient: Recipient) -> bool:

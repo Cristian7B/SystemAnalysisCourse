@@ -1,0 +1,59 @@
+# shared/params.yaml — Single source of truth for all simulation parameters.
+# Both behavior-oriented-simulation (ABM) and process-oriented-simulation (DES)
+# derive their numerical constants from this file.
+
+system:
+  center_lat: 4.6278
+  center_lon: -74.0642
+  operational_radius_km: 3.0
+  simulation_start_hour: 7 # 07:00
+  simulation_end_hour: 22 # 22:00
+  operational_minutes: 900 # 15-hour window
+
+surplus:
+  kg_mean: 12.0
+  kg_std: 5.0
+  kg_min: 1.0
+  kg_max: 40.0
+  pickup_window_min_minutes: 60      # total time a surplus remains valid after posting
+  pickup_window_max_minutes: 180
+  pickup_response_min_minutes: 5     # time from assignment until recipient attempts pickup
+  pickup_response_max_minutes: 30    # kept << pickup_window so retries are possible
+  large_surplus_threshold_kg: 10.0  # triggers charity-only matching (REQ-03)
+  max_reassignment_attempts: 3
+  no_show_timeout_minutes: 15
+
+matching:
+  weight_proximity: 0.50
+  weight_equity: 0.30
+  weight_charity: 0.20
+  tier_1_radius_km: 0.5
+  tier_2_radius_km: 1.0
+  tier_3_radius_km: 3.0
+  tier_1_equity_score: 0.2
+  tier_2_equity_score: 0.5
+  tier_3_equity_score: 0.8 # periphery gets higher equity weight (REQ-11)
+  engine_capacity: 1 # serialized — prevents race conditions (REQ-09)
+  peripheral_threshold_km: 2.5
+
+notifications:
+  max_per_surplus: 50
+  wave_1_max_km: 0.5
+  wave_1_delay_minutes: 0
+  wave_2_max_km: 1.0
+  wave_2_delay_min_minutes: 5
+  wave_2_delay_max_minutes: 10
+  wave_3_max_km: 3.0
+  wave_3_delay_min_minutes: 10
+  wave_3_delay_max_minutes: 15
+
+reliability:
+  initial_score_min: 60
+  initial_score_max: 90
+  pickup_reward: 1
+  no_show_penalty: -2
+
+statistics:
+  n_replications: 30
+  confidence_level: 0.95
+  ci_method: t_student # use t-distribution with n-1 degrees of freedom

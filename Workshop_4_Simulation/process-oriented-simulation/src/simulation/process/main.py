@@ -1,7 +1,7 @@
 """
 main.py — Food Waste Reduction Platform: Process-Oriented Simulation (Workshop 4)
 
-Authors : Luna Sandoval · Cristian Bonilla · Nicolás Rodríguez · Juan Bravo
+Authors : Cristian Bonilla 
 Tool    : Python SimPy (discrete-event / process-oriented)
 Clock   : 0 min = 07:00, 900 min = 22:00 (15-hour operating window)
 
@@ -29,6 +29,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import numpy as np
 import simpy
 from tabulate import tabulate
+import yaml
 
 # ── Sibling imports ────────────────────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(__file__))
@@ -41,20 +42,25 @@ from entities import (
     distance_tier,
     euclidean_distance_km,
 )
-from matching_engine import LARGE_SURPLUS_KG, MAX_RETRIES, MatchingEngine
+from matching_engine import MatchingEngine
 from metrics import MetricsCollector, aggregate_replications
 from notification import NotificationService
 from scenarios import ALL_SCENARIOS, ScenarioConfig
 
 # ── Paths ─────────────────────────────────────────────────────────────────────
 
-_ROOT      = Path(__file__).resolve().parents[3]
-DATA_DIR   = _ROOT / "data"
-LOGS_DIR   = _ROOT / "results" / "logs"
+_ROOT       = Path(__file__).resolve().parents[3]
+DATA_DIR    = _ROOT / "data"
+LOGS_DIR    = _ROOT / "results" / "logs"
 REPORTS_DIR = _ROOT / "results" / "reports"
 
-SIM_END: float = 900.0    # minutes  (22:00 − 07:00)
-N_REPLICATIONS: int = 30
+# ── Parameter loader ─────────────────────────────────────────────────────────
+
+def _load_shared_params() -> Dict:
+    """Load shared/params.yaml — single source of truth for all simulations."""
+    path = _ROOT.parent / "shared" / "params.yaml"
+    with open(path, encoding="utf-8") as f:
+        return yaml.safe_load(f)
 
 # ── Static data loaders ───────────────────────────────────────────────────────
 
@@ -62,11 +68,6 @@ def _load_arrival_rates() -> Dict[str, List[float]]:
     with open(DATA_DIR / "poisson_arrival.json") as f:
         data = json.load(f)
     return {k: [float(v) for v in data[k]] for k in ("Low", "Medium", "High")}
-
-
-def _load_qty_params() -> Dict[str, float]:
-    with open(DATA_DIR / "normal_qty.json") as f:
-        return json.load(f)
 
 
 # ── Agent generation ──────────────────────────────────────────────────────────
@@ -93,7 +94,11 @@ def _generate_donors(scenario: ScenarioConfig) -> List[Donor]:
     return donors
 
 
-def _generate_recipients(scenario: ScenarioConfig) -> List[Recipient]:
+def _generate_recipients(
+    scenario: ScenarioConfig,
+    rel_score_min: int,
+    rel_score_max: int,
+) -> List[Recipient]:
     n_ind = int(np.random.randint(scenario.recipient_individual_range[0],
                                    scenario.recipient_individual_range[1] + 1))
     n_chr = int(np.random.randint(scenario.charity_count_range[0],
@@ -102,12 +107,21 @@ def _generate_recipients(scenario: ScenarioConfig) -> List[Recipient]:
     for i in range(n_ind + n_chr):
         x, y = _point_in_circle()
         dist = math.sqrt(x * x + y * y)
+        # Sample per-recipient no-show probability from the scenario's range.
+        # Charities receive the lower half of the range (more reliable), matching ABM.
+        is_charity = (i >= n_ind)
+        if is_charity:
+            prob_max = scenario.no_show_min + (scenario.no_show_max - scenario.no_show_min) * 0.5
+            no_show_prob = float(np.random.uniform(scenario.no_show_min, prob_max))
+        else:
+            no_show_prob = float(np.random.uniform(scenario.no_show_min, scenario.no_show_max))
         recipients.append(Recipient(
             id=i,
             x=x,
             y=y,
-            reliability_score=float(np.random.randint(60, 91)),
-            is_charity=(i >= n_ind),
+            reliability_score=float(np.random.randint(rel_score_min, rel_score_max + 1)),
+            no_show_prob=no_show_prob,
+            is_charity=is_charity,
             tier=distance_tier(dist),
             dist_from_center=dist,
         ))
@@ -128,23 +142,51 @@ class FoodWasteSimulation:
         scenario:      ScenarioConfig,
         seed:          int,
         arrival_rates: Dict[str, List[float]],
-        qty_params:    Dict[str, float],
+        params:        Dict,
     ) -> None:
         np.random.seed(seed)
 
         self.scenario      = scenario
         self.seed          = seed
-        self.qty_params    = qty_params
         self._hourly_rates = arrival_rates[scenario.adoption]   # 15 values
+
+        # ── Parameters from shared/params.yaml ────────────────────────────────────
+        sys_p  = params["system"]
+        sur_p  = params["surplus"]
+        rel_p  = params["reliability"]
+        stat_p = params["statistics"]
+
+        self._sim_end          = float(sys_p["operational_minutes"])
+        self._max_retries      = int(sur_p["max_reassignment_attempts"])
+        self._large_kg         = float(sur_p["large_surplus_threshold_kg"])
+        self._no_show_timeout  = float(sur_p["no_show_timeout_minutes"])
+        self._pickup_window    = (
+            float(sur_p["pickup_window_min_minutes"]),
+            float(sur_p["pickup_window_max_minutes"]),
+        )
+        self._pickup_response  = (
+            float(sur_p["pickup_response_min_minutes"]),  # 5 min  — time recipient takes to arrive
+            float(sur_p["pickup_response_max_minutes"]),  # 30 min — kept << pickup_window for retries
+        )
+        self._kg_mean   = float(sur_p["kg_mean"])
+        self._kg_std    = float(sur_p["kg_std"])
+        self._kg_min    = float(sur_p["kg_min"])
+        self._kg_max    = float(sur_p["kg_max"])
+        self._rel_reward  = float(rel_p["pickup_reward"])     # +1.0
+        self._rel_penalty = float(rel_p["no_show_penalty"])   # −2.0 (negative value)
+        self._rel_score_min = int(rel_p["initial_score_min"])
+        self._rel_score_max = int(rel_p["initial_score_max"])
 
         self.env              = simpy.Environment()
         self.metrics          = MetricsCollector()
-        self.matching_engine  = MatchingEngine(self.env, self.metrics)
-        self.notification_svc = NotificationService(self.env, self.metrics)
+        self.matching_engine  = MatchingEngine(self.env, self.metrics, params)
+        self.notification_svc = NotificationService(self.env, self.metrics, params)
 
         # Closed agent population — fixed at simulation start
         self.donors:     List[Donor]     = _generate_donors(scenario)
-        self.recipients: List[Recipient] = _generate_recipients(scenario)
+        self.recipients: List[Recipient] = _generate_recipients(
+            scenario, self._rel_score_min, self._rel_score_max
+        )
 
         self._surplus_counter: int      = 0
         self.surpluses:        List[Surplus] = []   # all created surpluses
@@ -157,13 +199,13 @@ class FoodWasteSimulation:
 
     def _create_surplus(self) -> Tuple[Surplus, Donor]:
         kg = float(np.clip(
-            np.random.normal(self.qty_params["mean"], self.qty_params["std"]),
-            self.qty_params["min"],
-            self.qty_params["max"],
+            np.random.normal(self._kg_mean, self._kg_std),
+            self._kg_min,
+            self._kg_max,
         ))
-        posted_at    = self.env.now
-        pickup_window = float(np.random.uniform(60.0, 180.0))   # 1–3 hours
-        expiry_at    = min(posted_at + pickup_window, SIM_END)
+        posted_at     = self.env.now
+        pickup_window = float(np.random.uniform(*self._pickup_window))
+        expiry_at     = min(posted_at + pickup_window, self._sim_end)
         donor        = self.donors[int(np.random.randint(len(self.donors)))]
 
         surplus = Surplus(
@@ -188,123 +230,132 @@ class FoodWasteSimulation:
         """
         sc = self.scenario
 
-        # ── POSTED ────────────────────────────────────────────────────────────
-        surplus.log_transition(self.env.now, SurplusState.POSTED)
-        self.metrics.kg_published += surplus.kg
+        # Track how many surpluses are simultaneously active in the system.
+        # active_lifecycles is decremented via finally no matter how lifecycle ends.
+        self.metrics.active_lifecycles += 1
+        try:
 
-        while surplus.retry_count < MAX_RETRIES:
+            # ── POSTED ────────────────────────────────────────────────────────────
+            surplus.log_transition(self.env.now, SurplusState.POSTED)
+            self.metrics.kg_published += surplus.kg
 
-            # Check expiry before entering queue
-            if self.env.now >= surplus.expiry_at:
-                surplus.log_transition(self.env.now, SurplusState.EXPIRED)
-                self.metrics.record_expired(surplus)
-                return
+            while surplus.retry_count < self._max_retries:
 
-            # ── IN_QUEUE ──────────────────────────────────────────────────────
-            surplus.log_transition(self.env.now, SurplusState.IN_QUEUE)
-            queue_entry_time = self.env.now
+                # Check expiry before entering queue
+                if self.env.now >= surplus.expiry_at:
+                    surplus.log_transition(self.env.now, SurplusState.EXPIRED)
+                    self.metrics.record_expired(surplus)
+                    return
 
-            # Wait for matching engine (serialized, capacity=1)
-            result: Dict[str, Any] = {}
-            yield self.env.process(
-                self.matching_engine.match(
-                    surplus, donor, self.recipients,
-                    sc.reliability_scoring, result,
-                )
-            )
+                # ── IN_QUEUE ──────────────────────────────────────────────────────
+                surplus.log_transition(self.env.now, SurplusState.IN_QUEUE)
+                queue_entry_time = self.env.now
 
-            latency_s: float = (self.env.now - queue_entry_time) * 60.0
-            self.metrics.matching_latencies.append(latency_s)
-
-            best_match: Optional[Recipient] = result.get("recipient")
-
-            if best_match is None:
-                # No eligible recipient — increment retry
-                surplus.retry_count += 1
-                self.metrics.reassignment_chain_lengths.append(surplus.retry_count)
-                if surplus.retry_count >= MAX_RETRIES:
-                    break
-                # Brief cool-down before retry
-                yield self.env.timeout(5.0)
-                continue
-
-            # ── ASSIGNED ──────────────────────────────────────────────────────
-            surplus.assigned_to = best_match.id
-            surplus.log_transition(self.env.now, SurplusState.ASSIGNED, best_match.id)
-            self.metrics.accepted_count += 1
-            self.metrics.total_matches  += 1
-
-            # REQ-11 tracking
-            if best_match.is_peripheral:
-                self.metrics.peripheral_matches += 1
-
-            # REQ-03 tracking
-            if surplus.kg >= LARGE_SURPLUS_KG:
-                self.metrics.total_large_offers += 1
-                if best_match.is_charity:
-                    self.metrics.large_offers_to_charities += 1
-
-            # Fire-and-forget notification dispatch (async broker)
-            self.env.process(
-                self.notification_svc.dispatch(
-                    surplus, donor, self.recipients,
-                    sc.staggered_notifications,
-                )
-            )
-
-            # ── Wait for pickup ───────────────────────────────────────────────
-            remaining = surplus.expiry_at - self.env.now
-            if remaining <= 0:
-                surplus.log_transition(self.env.now, SurplusState.EXPIRED)
-                self.metrics.record_expired(surplus)
-                return
-
-            pickup_wait = min(float(np.random.uniform(30.0, 90.0)), remaining)
-            yield self.env.timeout(pickup_wait)
-
-            # ── No-show determination ─────────────────────────────────────────
-            effective_noshow = sc.no_show_prob
-            if sc.reliability_scoring:
-                # Reliable recipients are less likely to no-show
-                rel = best_match.reliability_score / 100.0
-                effective_noshow = sc.no_show_prob * (1.0 - 0.4 * rel)
-
-            if np.random.random() < effective_noshow:
-                # ── NO_SHOW ───────────────────────────────────────────────────
-                surplus.log_transition(self.env.now, SurplusState.NO_SHOW, best_match.id)
-                if sc.reliability_scoring:
-                    best_match.reliability_score = max(
-                        0.0, best_match.reliability_score - 2.0
+                # Wait for matching engine (serialized, capacity=1)
+                result: Dict[str, Any] = {}
+                yield self.env.process(
+                    self.matching_engine.match(
+                        surplus, donor, self.recipients,
+                        sc.reliability_scoring, result,
                     )
-                # 15-minute mandatory timeout before reassignment (Risk R4)
-                yield self.env.timeout(15.0)
-                surplus.assigned_to  = None
-                surplus.retry_count += 1
-                self.metrics.reassignment_chain_lengths.append(surplus.retry_count)
-                if surplus.retry_count >= MAX_RETRIES:
-                    break
-                # → loop back to IN_QUEUE
+                )
 
-            else:
-                # ── PICKED_UP ─────────────────────────────────────────────────
-                surplus.log_transition(self.env.now, SurplusState.PICKED_UP, best_match.id)
-                self.metrics.successful_pickups += 1
-                self.metrics.kg_collected       += surplus.kg
-                if sc.reliability_scoring:
-                    best_match.reliability_score = min(
-                        100.0, best_match.reliability_score + 1.0
+                latency_s: float = (self.env.now - queue_entry_time) * 60.0
+                self.metrics.matching_latencies.append(latency_s)
+
+                best_match: Optional[Recipient] = result.get("recipient")
+
+                if best_match is None:
+                    # No eligible recipient — increment retry
+                    surplus.retry_count += 1
+                    self.metrics.reassignment_chain_lengths.append(surplus.retry_count)
+                    if surplus.retry_count >= self._max_retries:
+                        break
+                    # Brief cool-down before retry
+                    yield self.env.timeout(5.0)
+                    continue
+
+                # ── ASSIGNED ──────────────────────────────────────────────────────
+                surplus.assigned_to = best_match.id
+                surplus.log_transition(self.env.now, SurplusState.ASSIGNED, best_match.id)
+                self.metrics.accepted_count += 1
+                self.metrics.total_matches  += 1
+
+                # REQ-11 tracking
+                if best_match.is_peripheral:
+                    self.metrics.peripheral_matches += 1
+
+                # REQ-03 tracking
+                if surplus.kg >= self._large_kg:
+                    self.metrics.total_large_offers += 1
+                    if best_match.is_charity:
+                        self.metrics.large_offers_to_charities += 1
+
+                # Fire-and-forget notification dispatch (async broker)
+                self.env.process(
+                    self.notification_svc.dispatch(
+                        surplus, donor, self.recipients,
+                        sc.staggered_notifications,
                     )
-                return  # terminal state — lifecycle ends
+                )
 
-        # ── EXPIRED (max retries exhausted) ───────────────────────────────────
-        surplus.log_transition(self.env.now, SurplusState.EXPIRED)
-        self.metrics.record_expired(surplus)
+                # ── Wait for pickup ───────────────────────────────────────────────
+                # pickup_response << pickup_window, so window has room for retries.
+                remaining = surplus.expiry_at - self.env.now
+                if remaining <= 0:
+                    surplus.log_transition(self.env.now, SurplusState.EXPIRED)
+                    self.metrics.record_expired(surplus)
+                    return
+
+                pickup_wait = min(float(np.random.uniform(*self._pickup_response)), remaining)
+                yield self.env.timeout(pickup_wait)
+
+                # ── No-show determination ─────────────────────────────────────────
+                effective_noshow = best_match.no_show_prob
+                if sc.reliability_scoring:
+                    # Reliable recipients are less likely to no-show (REQ-08)
+                    rel = best_match.reliability_score / 100.0
+                    effective_noshow = best_match.no_show_prob * (1.0 - 0.4 * rel)
+
+                if np.random.random() < effective_noshow:
+                    # ── NO_SHOW ───────────────────────────────────────────────────
+                    surplus.log_transition(self.env.now, SurplusState.NO_SHOW, best_match.id)
+                    if sc.reliability_scoring:
+                        best_match.reliability_score = max(
+                            0.0, best_match.reliability_score + self._rel_penalty
+                        )
+                    # Mandatory timeout before reassignment (Risk R4)
+                    yield self.env.timeout(self._no_show_timeout)
+                    surplus.assigned_to  = None
+                    surplus.retry_count += 1
+                    self.metrics.reassignment_chain_lengths.append(surplus.retry_count)
+                    if surplus.retry_count >= self._max_retries:
+                        break
+                    # → loop back to IN_QUEUE
+
+                else:
+                    # ── PICKED_UP ─────────────────────────────────────────────────
+                    surplus.log_transition(self.env.now, SurplusState.PICKED_UP, best_match.id)
+                    self.metrics.successful_pickups += 1
+                    self.metrics.kg_collected       += surplus.kg
+                    if sc.reliability_scoring:
+                        best_match.reliability_score = min(
+                            100.0, best_match.reliability_score + self._rel_reward
+                        )
+                    return  # terminal state — lifecycle ends
+
+            # ── EXPIRED (max retries exhausted) ───────────────────────────────────
+            surplus.log_transition(self.env.now, SurplusState.EXPIRED)
+            self.metrics.record_expired(surplus)
+
+        finally:
+            self.metrics.active_lifecycles -= 1
 
     # ── Arrival generator ─────────────────────────────────────────────────────
 
     def _arrival_generator(self):
         """Time-varying Poisson surplus arrival process (07:00–22:00)."""
-        while self.env.now < SIM_END:
+        while self.env.now < self._sim_end:
             hour_idx = min(int(self.env.now // 60), 14)    # clamp last partial hour
             lam      = self._hourly_rates[hour_idx]
 
@@ -315,7 +366,7 @@ class FoodWasteSimulation:
 
             yield self.env.timeout(inter_arrival)
 
-            if self.env.now >= SIM_END:
+            if self.env.now >= self._sim_end:
                 break
 
             surplus, donor = self._create_surplus()
@@ -324,18 +375,30 @@ class FoodWasteSimulation:
     # ── Queue monitor ─────────────────────────────────────────────────────────
 
     def _queue_monitor(self):
-        """Sample matching-engine queue length every minute for peak KPIs."""
-        while self.env.now < SIM_END:
-            q_len = len(self.matching_engine.resource.queue)
-            self.metrics.queue_length_samples.append((self.env.now, q_len))
+        """
+        Sample system load every minute.
+
+        Samples `active_lifecycles` — the number of surplus lifecycle processes
+        currently in flight (POSTED to terminal state). This is the meaningful
+        business "queue depth": how many surpluses are simultaneously competing
+        for matching and pickup resources.
+
+        The SimPy Resource queue (`resource.queue`) is not used here because
+        the matching engine's ~1-second service time means it is idle 99.8% of
+        the time at 1-minute sampling intervals.
+        """
+        while self.env.now < self._sim_end:
+            self.metrics.queue_length_samples.append(
+                (self.env.now, self.metrics.active_lifecycles)
+            )
             yield self.env.timeout(1.0)
 
-    # ── Run ───────────────────────────────────────────────────────────────────
+    # ── Run ─────────────────────────────────────────────────────────────────────
 
     def run(self) -> MetricsCollector:
         self.env.process(self._arrival_generator())
         self.env.process(self._queue_monitor())
-        self.env.run(until=SIM_END)
+        self.env.run(until=self._sim_end)
         return self.metrics
 
 
@@ -346,18 +409,19 @@ def _write_log(scenario_id: str, seed: int, surpluses: List[Surplus]) -> None:
     with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(
             f,
-            fieldnames=["surplus_id", "timestamp_min", "state",
-                        "assigned_user_id", "kg"],
+            fieldnames=["surplus_id", "timestamp", "state",
+                        "assigned_user_id", "kg", "retry_count"],
         )
         writer.writeheader()
         for s in surpluses:
             for t in s.state_log:
                 writer.writerow({
                     "surplus_id":       s.id,
-                    "timestamp_min":    f"{t.timestamp:.3f}",
+                    "timestamp":        f"{t.timestamp:.3f}",
                     "state":            t.state,
                     "assigned_user_id": t.assigned_user_id if t.assigned_user_id is not None else "",
                     "kg":               f"{t.kg:.2f}",
+                    "retry_count":      t.retry_count,
                 })
 
 
@@ -367,10 +431,10 @@ def run_replication(
     scenario:      ScenarioConfig,
     seed:          int,
     arrival_rates: Dict[str, List[float]],
-    qty_params:    Dict[str, float],
+    params:        Dict,
     write_logs:    bool = True,
 ) -> Dict[str, float]:
-    sim     = FoodWasteSimulation(scenario, seed, arrival_rates, qty_params)
+    sim     = FoodWasteSimulation(scenario, seed, arrival_rates, params)
     metrics = sim.run()
     kpis    = metrics.compute_kpis()
     if write_logs:
@@ -383,14 +447,14 @@ def run_replication(
 def run_scenario(
     scenario:      ScenarioConfig,
     arrival_rates: Dict[str, List[float]],
-    qty_params:    Dict[str, float],
-    n_reps:        int = N_REPLICATIONS,
+    params:        Dict,
 ) -> Dict[str, Dict[str, float]]:
+    n_reps = int(params["statistics"]["n_replications"])
     print(f"\n  [{scenario.id}] {scenario.name} — {n_reps} replications")
     kpi_list: List[Dict[str, float]] = []
 
     for seed in range(n_reps):
-        kpis = run_replication(scenario, seed, arrival_rates, qty_params)
+        kpis = run_replication(scenario, seed, arrival_rates, params)
         kpi_list.append(kpis)
         if (seed + 1) % 10 == 0:
             print(f"    ... completed {seed + 1}/{n_reps}")
@@ -401,7 +465,7 @@ def run_scenario(
     report_path = REPORTS_DIR / f"{scenario.id}_summary.csv"
     with open(report_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
-        writer.writerow(["kpi", "mean", "ci95", "ci95_lower", "ci95_upper", "min", "max", "std"])
+        writer.writerow(["metric", "mean", "ci95", "ci95_lower", "ci95_upper", "min", "max", "std"])
         for kpi, stats in aggregated.items():
             m, ci = stats["mean"], stats["ci95"]
             writer.writerow([
@@ -421,26 +485,26 @@ def run_scenario(
 # ── Console summary ───────────────────────────────────────────────────────────
 
 _KPI_TABLE: List[Tuple[str, str, str]] = [
-    # (dict_key,                       display_label,                    target)
-    ("recovery_rate",                  "Surplus Recovery Rate",           "≥ 80 %"),
-    ("pickup_completion_rate",         "Pickup Completion Rate",          "≥ 85 %"),
-    ("avg_matching_latency_s",         "Avg Matching Latency (s)",        "< 2 s"),
-    ("charity_priority_compliance",    "Charity Priority Compliance",     "≥ 90 %"),
-    ("peripheral_match_rate",          "Peripheral Match Rate (REQ-11)",  "≥ 15 %"),
-    ("engine_utilization",             "Matching Engine Utilization",     "—"),
-    ("avg_queue_length_peak",          "Avg Queue Len (peak hours)",      "—"),
-    ("max_queue_length_peak",          "Max Queue Len (peak hours)",      "—"),
-    ("avg_notification_throughput_per_h", "Avg Notif Throughput (/h)",   "—"),
-    ("avg_reassignment_chain",         "Avg Reassignment Chain",          "—"),
-    ("co2_avoided_kg",                 "CO₂ Avoided (kg)",                "—"),
-    ("kg_published",                   "Total kg Published",              "—"),
-    ("kg_collected",                   "Total kg Collected",              "—"),
-    ("n_surpluses",                    "Total Surpluses",                 "—"),
+    # (dict_key,                         display_label,                    target)
+    ("recovery_rate",                    "Surplus Recovery Rate",           "≥ 80 %"),
+    ("pickup_completion_rate",           "Pickup Completion Rate",          "≥ 85 %"),
+    ("avg_matching_latency_s",           "Avg Matching Latency (s)",        "< 2 s"),
+    ("charity_priority_rate",            "Charity Priority Rate (REQ-03)",  "≥ 90 %"),
+    ("peripheral_match_rate",            "Peripheral Match Rate (REQ-11)",  "≥ 15 %"),
+    ("engine_utilization",               "Matching Engine Utilization",     "—"),
+    ("avg_queue_length",                 "Avg Queue Len (peak hours)",      "—"),
+    ("max_queue_length",                 "Max Queue Len (peak hours)",      "—"),
+    ("throughput_per_hour",              "Throughput (completions/h)",      "—"),
+    ("avg_reassignment_chain",           "Avg Reassignment Chain",          "—"),
+    ("co2_avoided_kg",                   "CO₂ Avoided (kg)",                "—"),
+    ("kg_published",                     "Total kg Published",              "—"),
+    ("kg_collected",                     "Total kg Collected",              "—"),
+    ("n_surpluses",                      "Total Surpluses",                 "—"),
 ]
 
 _PERCENT_KEYS = {
     "recovery_rate", "pickup_completion_rate",
-    "charity_priority_compliance", "peripheral_match_rate",
+    "charity_priority_rate", "peripheral_match_rate",
     "engine_utilization",
 }
 
@@ -477,11 +541,11 @@ def print_summary(all_results: Dict[str, Dict[str, Dict[str, float]]]) -> None:
     # Validation summary
     s01 = all_results.get("S01", {})
     checks = [
-        ("Recovery rate ≥ 80%",     s01.get("recovery_rate",              {}).get("mean", 0) >= 0.80),
-        ("Pickup success ≥ 85%",    s01.get("pickup_completion_rate",     {}).get("mean", 0) >= 0.85),
-        ("Avg latency < 2 s",       s01.get("avg_matching_latency_s",     {}).get("mean", 0) < 2.0),
-        ("Charity priority ≥ 90%",  s01.get("charity_priority_compliance",{}).get("mean", 0) >= 0.90),
-        ("Peripheral rate ≥ 15%",   s01.get("peripheral_match_rate",      {}).get("mean", 0) >= 0.15),
+        ("Recovery rate ≥ 80%",     s01.get("recovery_rate",          {}).get("mean", 0) >= 0.80),
+        ("Pickup success ≥ 85%",    s01.get("pickup_completion_rate", {}).get("mean", 0) >= 0.85),
+        ("Avg latency < 2 s",       s01.get("avg_matching_latency_s", {}).get("mean", 0) < 2.0),
+        ("Charity priority ≥ 90%",  s01.get("charity_priority_rate",  {}).get("mean", 0) >= 0.90),
+        ("Peripheral rate ≥ 15%",   s01.get("peripheral_match_rate",  {}).get("mean", 0) >= 0.15),
     ]
     s03_users = (
         ALL_SCENARIOS[2].recipient_individual_range[0]
@@ -499,23 +563,25 @@ def print_summary(all_results: Dict[str, Dict[str, Dict[str, float]]]) -> None:
 # ── Entry point ───────────────────────────────────────────────────────────────
 
 def main() -> None:
+    params = _load_shared_params()
+    n_reps = int(params["statistics"]["n_replications"])
+
     print("=" * 60)
     print("  Food Waste Reduction Platform — Workshop 4 Simulation")
-    print(f"  {N_REPLICATIONS} Monte Carlo replications per scenario")
+    print(f"  {n_reps} Monte Carlo replications per scenario")
     print("=" * 60)
 
     LOGS_DIR.mkdir(parents=True, exist_ok=True)
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
     arrival_rates = _load_arrival_rates()
-    qty_params    = _load_qty_params()
 
     t0 = time.time()
     all_results: Dict[str, Dict[str, Dict[str, float]]] = {}
 
     for scenario in ALL_SCENARIOS:
         all_results[scenario.id] = run_scenario(
-            scenario, arrival_rates, qty_params, N_REPLICATIONS
+            scenario, arrival_rates, params
         )
 
     elapsed = time.time() - t0
