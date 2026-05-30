@@ -1,0 +1,7 @@
+{
+  "_comment": "Hourly surplus arrival rates (λ surpluses/hour) per adoption tier. Index 0 = 07:00, index 14 = 21:00. Peaks at 12-13h (lunch, indices 5-6) and 18-19h (dinner, indices 11-12).",
+  "hours": ["07","08","09","10","11","12","13","14","15","16","17","18","19","20","21"],
+  "Low":    [1,   1,   2,   2,   3,   5,   5,   4,   2,   2,   3,   4,   5,   4,   2],
+  "Medium": [2,   2,   3,   4,   5,   10,  10,  8,   4,   4,   5,   8,   10,  8,   3],
+  "High":   [4,   4,   6,   8,   10,  20,  20,  16,  8,   8,   10,  16,  20,  16,  6]
+}

@@ -1,0 +1,7 @@
+{
+  "_comment": "Surplus quantity distribution parameters (kg). Drawn from Normal(mean, std) clipped to [min, max].",
+  "mean": 12.0,
+  "std":  5.0,
+  "min":  1.0,
+  "max":  40.0
+}
