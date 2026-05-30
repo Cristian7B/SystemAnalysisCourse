@@ -56,7 +56,8 @@ The platform enables real-time surplus food redistribution with mandatory same-d
 - ✅ Workshop 1 **delivered** 
 - ✅ Workshop 2 **delivered**
 - ✅ Workshop 3 **delivered**
-- 🔃 Workshop 4 (In progress)
+- ✅ Workshop 4  **delivered**
 - 🔃 Final Prototype (In progress)
+  |-> Final Prototype Repo: https://github.com/Cristian7B/SurplusFood
 
-**Last updated**: April 26, 2026
+**Last updated**: May 30, 2026
